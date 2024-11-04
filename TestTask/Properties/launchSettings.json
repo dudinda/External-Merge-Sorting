@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "GeneratorDebugProfile": {
+      "commandName": "Project",
+      "commandLineArgs": "generate \"output.txt\" 1000000"
+    },
+    "SorterDebugProfile": {
+      "commandName": "Project",
+      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt"
+    },
+    "HelpProfile": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
+    }
+  }
+}
