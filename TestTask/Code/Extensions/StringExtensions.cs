@@ -20,7 +20,7 @@ namespace TestTask.Code.Extensions
                 {
                     Item = new Entry()
                     {
-                        Value = input
+                        Row = input
                     },
                     Priority = (parts[1], integer)
                 };

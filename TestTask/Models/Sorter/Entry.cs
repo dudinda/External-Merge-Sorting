@@ -2,7 +2,7 @@
 {
     internal class Entry
     {
-        public string Value { get; init; }
+        public string Row { get; init; }
         public int StreamReaderIdx { get; set; }
     }
 }

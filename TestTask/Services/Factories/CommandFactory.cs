@@ -5,6 +5,7 @@ using System.CommandLine;
 using TestTask.Code.Constants;
 using TestTask.Models.Arguments;
 using TestTask.Models.Settings;
+using TestTask.Models.Timer;
 using TestTask.Services.Generator;
 using TestTask.Services.Sorter;
 
@@ -49,7 +50,11 @@ namespace TestTask.Services.Factories
                 result.TargetFileSizeKb = fileSize;
 
                 var settings = _config.GetSection(nameof(GeneratorSetting)).Get<GeneratorSetting>();
+                if (!settings.Validate(out var errors))
+                    throw new InvalidOperationException(errors.ToString());
+
                 var service = new GeneratorService(settings);
+                using var timer = new SimpleTimer("Generating a file");
                 await service.Generate(result.TargetFileName, result.TargetFileSizeKb, ctx.GetCancellationToken());
             });
 
@@ -74,7 +79,11 @@ namespace TestTask.Services.Factories
                 result.SourceFileName = (string)parser.GetValueForArgument(args[nameof(result.SourceFileName)]);
 
                 var settings = _config.GetSection(nameof(SorterSetting)).Get<SorterSetting>();
+                if (!settings.Validate(out var errors))
+                    throw new InvalidOperationException(errors.ToString());
+
                 var service = new SorterService(settings);
+                using var timer = new SimpleTimer("Sorting a file");
                 await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());
             });
 
