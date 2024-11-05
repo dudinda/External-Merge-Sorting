@@ -53,13 +53,11 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
 "SorterSetting": {
   "FileSplitSizeKb": 16384,
   "SortPageSize": 16,
-  "SortInputBufferSize": 4096,
   "SortOutputBufferSize": 81920,
   "SortThenMergePageSize": 4,
   "SortThenMergeChunkSize": 4,
   "MergePageSize": 4,
   "MergeChunkSize": 4,
-  "MergeInputBufferSize": 4096,
   "MergeOutputBufferSize": 81920,
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
@@ -81,13 +79,11 @@ The general merging strategy: ```256 -> 64``` (during the Sorting/Merging Phase)
 "SorterSetting": {
   "FileSplitSizeKb": 40960,
   "SortPageSize": 64,
-  "SortInputBufferSize": 4096,
   "SortOutputBufferSize": 81920,
-  "SortThenMergePageSize": 8,
-  "SortThenMergeChunkSize": 8,
+  "SortThenMergePageSize": 4,
+  "SortThenMergeChunkSize": 4,
   "MergePageSize": 4,
   "MergeChunkSize": 4,
-  "MergeInputBufferSize": 4096,
   "MergeOutputBufferSize": 81920,
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
