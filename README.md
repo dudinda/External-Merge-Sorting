@@ -5,11 +5,9 @@
    - [Splitting Phase](#)
    - [Sorting/Merging Phase](#)
    - [Merging Phase](#)
-3. [Strategy to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
-4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
-5. [Benchmark in a local environment (1 GB)](#benchmarks-in-a-local-environment-1-gb)
-6. [Benchmark in a local environment (10 GB)](#benchmarks-in-a-local-environment-10-gb)
-7. [Created with](#created-with)
+3. [Strategy/Benchmark to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
+4. [Strategy/Benchmark to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
+5. [Created with](#created-with)
 ***
 ## Console Interface
 The program provides a console interface with the two verbs [g]enerate and [s]ort to generate a file size of N (kb) and to sort 
@@ -35,7 +33,7 @@ To start sorting a file with the correct data format the following command can b
 ## Strategy to merge a file 1 GB
 
 Specifing the following settings the algorithm will split a file into 64 chunks ~15MB each and start sorting 4 pages of 16 chunks each.
-The general merging strategy: 64 -> 16 (during the Sorting/Merging Phase) -> 4 -> 1 (during the Merging Phase). All operations will be performed within the single drive C:\.
+The general merging strategy: 64 -> 16 (during the Sorting/Merging Phase) -> 4 -> 1 (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
 "SorterSetting": {
@@ -59,11 +57,32 @@ The general merging strategy: 64 -> 16 (during the Sorting/Merging Phase) -> 4 -
 
 ***
 ## Strategy to merge a file 10 GB
+
+Specifing the following settings the algorithm will split a file into 256 chunks ~39MB each and start sorting 8 pages of 64 chunks each.
+The general merging strategy: 256 -> 64 (during the Sorting/Merging Phase) -> 16 -> 4 -> 1 (during the Merging Phase). All operations will be performed within the single drive C:\\.
+
+```json
+"SorterSetting": {
+  "FileSplitSizeKb": 39070,
+  "SortPageSize": 64,
+  "SortInputBufferSize": 4096,
+  "SortOutputBufferSize": 81920,
+  "SortThenMergePageSize": 8,
+  "SortThenMergeChunkSize": 8,
+  "MergePageSize": 4,
+  "MergeChunkSize": 4,
+  "MergeInputBufferSize": 4096,
+  "MergeOutputBufferSize": 81920,
+  "IOPath": {
+    "SortReadPath": "C:\\Temp\\Files",
+    "SortWritePath": "C:\\Temp\\Files",
+    "MergeStartTargetPath": "C:\\Temp\\Files"
+  }
+}
+```
+
 ***
-## Benchmarks in a local environment (1 GB)
-***
-## Benchmarks in a local environment (10 GB)
-***
+
 ## Created With
 
 [System.CommandLine](https://www.nuget.org/packages/ImageProcessing.Microkernel.DIAdapter](https://www.nuget.org/packages/System.CommandLine)/)
