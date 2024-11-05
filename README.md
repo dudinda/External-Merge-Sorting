@@ -2,15 +2,20 @@
 
 1. [Console interface](#console-interface)
 2. [Algorithm](#algorithm)
-   - [Splitting Phase](#)
-   - [Sorting/Merging Phase](#)
-   - [Merging Phase](#)
+   - [Splitting Phase](#splitting)
+   - [Sorting/Merging Phase](#sortingmerging)
+   - [Merging Phase](#merging)
 3. [Strategy to merge a file 1 GB / Time in a local environment](#strategy-to-merge-a-file-1-gb)
 4. [Strategy to merge a file 10 GB / Time in a local environment](#strategy-to-merge-a-file-10-gb)
 5. [Created with](#created-with)
 ***
+
 ## Console Interface
-The program provides a console interface with the two verbs [g]enerate and [s]ort to generate a file size of N (kb) and to sort 
+The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. 
+
+```powershell
+.\TestTask.exe --help
+```
 
 <p align="center">
     <img src="https://github.com/user-attachments/assets/03e3c6eb-a988-41f8-8fe6-eef479311f52" width="600" height = "400" alt="original underexposed image">
@@ -28,16 +33,25 @@ To start sorting a file with the correct data format the following command can b
 ```
 
 ***
+
 ## Algorithm
+The provided software contains an implementation of the [External Sort](https://en.wikipedia.org/wiki/External_sorting) algorithm with a possible extension to split I/O operations between 2 drives. 
+### Splitting 
+During the splitting phase, a source file is sequentially read and split into blocks of ```FileSplitSizeKb``` size. For every chunk, the name is set as ```<counter>.unsorted```. In the end of each iteration the algorithm analyzes whether the current byte is set at the position of a line's end, and if not, continues to write byte-by-byte until the end of the line is met. After a file is persisted, a map of ```filename::number of lines``` is populated.
+### Sorting/Merging
+For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Test Task Comparer](https://github.com/dudinda/TestTask/blob/master/TestTask/Code/Comparators/TaskTemplateComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
+### Merging
+The common merging strategy is to try to converge files from bottom to top forming a [B-Tree](https://en.wikipedia.org/wiki/B-tree). A possible chain is ```256 -> 64 -> 16 -> 4 -> 1```. Every ```MergePageSize``` opens ```MergeChunkSize``` streams, then reads the very first element, binds an index to it and continues to process every stream line-by-line sequentially enqueue a row to the priority queue, where the priority is set as a tuple of ```(<number>, <string>)``` using the [K-Way Merge](https://en.wikipedia.org/wiki/K-way_merge_algorithm). The first dequeued item is written to a target file. In case two drives are correctly set in the ```appsettings.json``` it is possible to merge files from one drive to another: ex: ```C:\\->E:\\->C:\\->```.
+
 ***
 ## Strategy to merge a file 1 GB
 
-Specifing the following settings the algorithm will split a file into 64 chunks ~15MB each and start sorting 4 pages of 16 chunks each.
-The general merging strategy: 64 -> 16 (during the Sorting/Merging Phase) -> 4 -> 1 (during the Merging Phase). All operations will be performed within the single drive C:\\.
+Specifing the following settings the algorithm will split a file into 64 chunks ~16MB each and start processing 4 pages of 16 files.
+The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
 "SorterSetting": {
-  "FileSplitSizeKb": 15625,
+  "FileSplitSizeKb": 16384,
   "SortPageSize": 16,
   "SortInputBufferSize": 4096,
   "SortOutputBufferSize": 81920,
@@ -50,20 +64,22 @@ The general merging strategy: 64 -> 16 (during the Sorting/Merging Phase) -> 4 -
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
     "SortWritePath": "C:\\Temp\\Files",
+    "MergeStartPath": "C:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
   }
 }
 ```
 
 ***
+
 ## Strategy to merge a file 10 GB
 
-Specifing the following settings the algorithm will split a file into 256 chunks ~39MB each and start sorting 8 pages of 64 chunks each.
-The general merging strategy: 256 -> 64 (during the Sorting/Merging Phase) -> 16 -> 4 -> 1 (during the Merging Phase). All operations will be performed within the single drive C:\\.
+Specifing the following settings the algorithm will split a file into 256 chunks ~41MB each and start processing 8 pages of 64 files.
+The general merging strategy: ```256 -> 64``` (during the Sorting/Merging Phase) ```-> 16 -> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
 "SorterSetting": {
-  "FileSplitSizeKb": 39070,
+  "FileSplitSizeKb": 40960,
   "SortPageSize": 64,
   "SortInputBufferSize": 4096,
   "SortOutputBufferSize": 81920,
@@ -76,6 +92,7 @@ The general merging strategy: 256 -> 64 (during the Sorting/Merging Phase) -> 16
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
     "SortWritePath": "C:\\Temp\\Files",
+    "MergeStartPath": "C:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
   }
 }
@@ -91,5 +108,4 @@ The general merging strategy: 256 -> 64 (during the Sorting/Merging Phase) -> 16
 
 [Microsoft.Extensions.Configuration](https://www.nuget.org/packages/microsoft.extensions.configuration/)
 
-[Benchmark.Net](https://www.nuget.org/packages/BenchmarkDotNet)
 
