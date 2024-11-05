@@ -47,7 +47,7 @@ The common merging strategy is to try to converge files from bottom to top formi
 ## Strategy to merge a file 1 GB
 
 Specifing the following settings the algorithm will split a file into 64 chunks ~16MB each and start processing 4 pages of 16 files.
-The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
+The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the two drives C:\\ and E:\\. 
 
 ```json
 "SorterSetting": {
@@ -61,8 +61,8 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
   "MergeOutputBufferSize": 81920,
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
-    "SortWritePath": "C:\\Temp\\Files",
-    "MergeStartPath": "C:\\Temp\\Files",
+    "SortWritePath": "E:\\Temp\\Files",
+    "MergeStartPath": "E:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
   }
 }
