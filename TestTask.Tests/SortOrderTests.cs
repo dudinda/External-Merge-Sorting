@@ -1,6 +1,6 @@
 using System.Text;
 
-using TestTask.Code.Comparators;
+using TestTask.Code.Comparers;
 using TestTask.Code.Extensions;
 
 namespace TestTask.Tests

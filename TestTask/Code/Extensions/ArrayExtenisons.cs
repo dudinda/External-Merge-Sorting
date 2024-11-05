@@ -1,4 +1,4 @@
-﻿using TestTask.Code.Comparators;
+﻿using TestTask.Code.Comparers;
 
 namespace TestTask.Code.Extensions
 {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
 
-using TestTask.Code.Comparators;
+using TestTask.Code.Comparers;
 using TestTask.Code.Extensions;
 using TestTask.Models.Settings;
 using TestTask.Models.Sorter;
@@ -159,7 +159,8 @@ namespace TestTask.Services.Sorter
             var buffer = new (string Str, int Int)[numberOfLines];
             using (var unsorted = File.OpenRead(unsortedFilePath))
             {
-                using var streamReader = new StreamReader(unsorted, bufferSize: _settings.SortInputBufferSize);
+                using var buffered = new BufferedStream(unsorted);
+                using var streamReader = new StreamReader(buffered);
                 var index = 0;
                 while (!streamReader.EndOfStream && !token.IsCancellationRequested)
                 {
@@ -317,7 +318,8 @@ namespace TestTask.Services.Sorter
             {
                 var sortedFilePath = Path.Combine(readerSourcePath, sortedFiles[i]);
                 var sortedFileStream = File.OpenRead(sortedFilePath);
-                streamReaders[i] = new StreamReader(sortedFileStream, bufferSize: _settings.MergeInputBufferSize);
+                var buffered = new BufferedStream(sortedFileStream);
+                streamReaders[i] = new StreamReader(sortedFileStream);
                 var value = streamReaders[i].ReadLine();
                 if(value.TryParseLine(out var entry))
                 {

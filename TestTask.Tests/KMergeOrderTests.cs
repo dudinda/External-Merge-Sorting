@@ -1,4 +1,4 @@
-﻿using TestTask.Code.Comparators;
+﻿using TestTask.Code.Comparers;
 using TestTask.Code.Extensions;
 using TestTask.Models.Sorter;
 
