@@ -8,6 +8,7 @@ namespace TestTask.Models.Settings
         public string SplitReadPath { get; init; } = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         public string SortReadPath { get; init; }
         public string SortWritePath { get; init; }
+        public string MergeStartPath { get; init; }
         public string MergeStartTargetPath { get; init; }
 
         public bool Validate(out StringBuilder errors)
@@ -19,8 +20,10 @@ namespace TestTask.Models.Settings
                 errors.AppendLine("The target path to get unsorted files is not specified.");
             if (string.IsNullOrEmpty(SortWritePath))
                 errors.AppendLine("The target path to sort unsorted files is not specified.");
-            if (string.IsNullOrEmpty(MergeStartTargetPath))
+            if (string.IsNullOrEmpty(MergeStartPath))
                 errors.AppendLine("The target path to select sorted files for merge is not specified.");
+            if (string.IsNullOrEmpty(MergeStartTargetPath))
+                errors.AppendLine("The target path to merge files is not specified.");
 
             return errors.Length == 0;
         }

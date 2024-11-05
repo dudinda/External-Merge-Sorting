@@ -196,7 +196,7 @@ namespace TestTask.Services.Sorter
         
         private async Task MergeFiles(IReadOnlyList<string> sortedFiles, string targetName, CancellationToken token)
         {
-            var mergeSourceLocation = _settings.IOPath.SortWritePath;
+            var mergeSourceLocation = _settings.IOPath.MergeStartPath;
             var mergeTargetLocation = _settings.IOPath.MergeStartTargetPath;
             var iteration = 1;
             while (sortedFiles.Count > 1 && !token.IsCancellationRequested)
