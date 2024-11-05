@@ -31,7 +31,7 @@ namespace TestTask.Services.Factories
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(GeneratorArgument.TargetFileName)
             };
-            yield return new TestTaskArgument<string>("dst_file_name", "Size of a file (byte)")
+            yield return new TestTaskArgument<string>("dst_file_name", "Size of a file (kb)")
             {
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(GeneratorArgument.TargetFileSizeKb)
