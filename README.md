@@ -11,7 +11,7 @@
 ***
 
 ## Console Interface
-The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. 
+The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
 
 ```powershell
 .\TestTask.exe --help
