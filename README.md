@@ -99,7 +99,7 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
 ## Created With
 [.NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
-[System.CommandLine](https://www.nuget.org/packages/System.CommandLine)/)
+[System.CommandLine](https://www.nuget.org/packages/System.CommandLine)
 
 [Visual Studio Unit Tests](https://www.nuget.org/packages/Microsoft.NET.Test.SDK)
 
