@@ -46,8 +46,10 @@ namespace TestTask.Services.Sorter
             var fileSize = fileSizeKb * 1024;
             var buffer = new byte[fileSize];
             var extraBuffer = new List<byte>();
-            Console.WriteLine($"Splitting {srcFile} into files of the {fileSizeKb / 1024:0.###} MB");
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
+            if (!Directory.Exists(_settings.IOPath.SortReadPath))
+                throw new InvalidOperationException($"Directory {_settings.IOPath.SortReadPath} does not exist.");
+            Console.WriteLine($"Splitting {srcFile} into files of the {fileSizeKb / 1024:0.###} MB");
             await using (var sourceStream = File.OpenRead(srcPath))
             {
                 var currentFile = 0;
@@ -118,6 +120,13 @@ namespace TestTask.Services.Sorter
             var sorted = new ConcurrentBag<string>();
             var total = unsortedFiles.Count;
             var pageStep = _settings.SortPageSize;
+
+            if(pageStepMerge * chunkSize < pageStep)
+            {
+                var sqrt = (decimal)Math.Sqrt(pageStep);
+                pageStepMerge = (int)Math.Ceiling(sqrt);
+                chunkSize = (int)Math.Floor(sqrt);
+            }
 
             var page = 0;
             var start = 0;
