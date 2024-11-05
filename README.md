@@ -11,7 +11,7 @@
 ***
 
 ## Console Interface
-The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. 
+The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
 
 ```powershell
 .\TestTask.exe --help
@@ -99,7 +99,7 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
 ## Created With
 [.NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
-[System.CommandLine](https://www.nuget.org/packages/ImageProcessing.Microkernel.DIAdapter](https://www.nuget.org/packages/System.CommandLine)/)
+[System.CommandLine](https://www.nuget.org/packages/System.CommandLine)
 
 [Visual Studio Unit Tests](https://www.nuget.org/packages/Microsoft.NET.Test.SDK)
 
