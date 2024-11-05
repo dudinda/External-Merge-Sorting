@@ -40,7 +40,7 @@ namespace TestTask.Tests
         }
 
         [TestMethod]
-        public void VerifyCorrectOrderOfSort()
+        public void VerifyCorrectOrderWithTaskTestComparatorSort()
         {
             var buffer = new (string Str, int Int)[_data.Length];
             for(var i = 0; i < _data.Length; ++i)
