@@ -5,8 +5,8 @@
    - [Splitting Phase](#)
    - [Sorting/Merging Phase](#)
    - [Merging Phase](#)
-3. [Strategy/Benchmark to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
-4. [Strategy/Benchmark to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
+3. [Strategy to merge a file 1 GB / Time in a local environment](#strategy-to-merge-a-file-1-gb)
+4. [Strategy to merge a file 10 GB / Time in a local environment](#strategy-to-merge-a-file-10-gb)
 5. [Created with](#created-with)
 ***
 ## Console Interface
