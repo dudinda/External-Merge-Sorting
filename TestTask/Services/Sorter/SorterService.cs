@@ -47,8 +47,8 @@ namespace TestTask.Services.Sorter
             var buffer = new byte[fileSize];
             var extraBuffer = new List<byte>();
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
-            if (!Directory.Exists(_settings.IOPath.SortReadPath))
-                throw new InvalidOperationException($"Directory {_settings.IOPath.SortReadPath} does not exist.");
+            if (!Directory.Exists(_settings.IOPath.SplitReadPath))
+                throw new InvalidOperationException($"Directory {_settings.IOPath.SplitReadPath} does not exist.");
             Console.WriteLine($"Splitting {srcFile} into files of the {fileSizeKb / 1024:0.###} MB");
             await using (var sourceStream = File.OpenRead(srcPath))
             {
