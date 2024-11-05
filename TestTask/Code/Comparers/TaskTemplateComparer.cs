@@ -1,4 +1,4 @@
-﻿namespace TestTask.Code.Comparators
+﻿namespace TestTask.Code.Comparers
 {
     internal class TaskTemplateComparer<T> : IComparer<T>
     {
