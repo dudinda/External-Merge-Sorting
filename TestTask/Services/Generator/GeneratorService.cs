@@ -30,7 +30,7 @@ namespace TestTask.Services.Generator
                 while(writer.BaseStream.CanWrite && writer.BaseStream.Position <= sizeB && !token.IsCancellationRequested)
                 {
                     var numberOfWords = rnd.Next(1, _settings.MaxWordLength);
-                    while(numberOfWords-- > 0)
+                    while(numberOfWords-- >= 0)
                     {
                         builder.Append($" {words[rnd.Next(words.Length - 1)]}");
                     }

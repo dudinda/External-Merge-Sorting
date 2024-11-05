@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text;
 
 using TestTask.Code.Comparators;
@@ -29,14 +28,8 @@ namespace TestTask.Services.Sorter
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)
         {
-            var watch = new Stopwatch();
-            watch.Start();
-            var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
-            using var source = File.OpenRead(srcPath);
-
             Console.WriteLine("--Splitting--");
-            Console.WriteLine($"Splitting {srcFile} into files of the {_settings.FileSplitSizeKb / 1024:0.###} MB");
-            var files = await SplitFile(source, _settings.FileSplitSizeKb, token);
+            var files = await SplitFile(srcFile, _settings.FileSplitSizeKb, token);
 
             Console.WriteLine($"{Environment.NewLine}--Sorting/Merging--");
             var mergeTasks = await SortFiles(files, token);
@@ -45,19 +38,17 @@ namespace TestTask.Services.Sorter
             Console.WriteLine($"{Environment.NewLine}--Merging--");
             var sortedFiles = MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
             await MergeFiles(sortedFiles, dstFile, token);
-
-            watch.Stop();
-            Console.WriteLine($"{watch.Elapsed.ToString(@"m\:ss\.fff")}");
         }
 
         private async Task<IReadOnlyCollection<string>> SplitFile(
-            Stream sourceStream, long fileSizeKb, CancellationToken token)
+            string srcFile, long fileSizeKb, CancellationToken token)
         {
             var fileSize = fileSizeKb * 1024;
             var buffer = new byte[fileSize];
             var extraBuffer = new List<byte>();
-
-            await using (sourceStream)
+            Console.WriteLine($"Splitting {srcFile} into files of the {fileSizeKb / 1024:0.###} MB");
+            var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
+            await using (var sourceStream = File.OpenRead(srcPath))
             {
                 var currentFile = 0;
                 while (sourceStream.Position < sourceStream.Length && !token.IsCancellationRequested)
@@ -287,15 +278,15 @@ namespace TestTask.Services.Sorter
 
             while (!token.IsCancellationRequested && finishedStreamReaders.Count != streamReaders.Length)
             {
-                var row = priorityQueue.Dequeue();
-                var streamReaderIndex = row.StreamReaderIdx;
-                outputWriter.WriteLine(row.Value.AsMemory());
+                var entry = priorityQueue.Dequeue();
+                var streamReaderIndex = entry.StreamReaderIdx;
+                outputWriter.WriteLine(entry.Row.AsMemory());
 
                 var value = streamReaders[streamReaderIndex].ReadLine();
-                if(value.TryParseLine(out var entry))
+                if(value.TryParseLine(out var entryWithPriority))
                 {
-                    entry.Item.StreamReaderIdx = streamReaderIndex;
-                    priorityQueue.Enqueue(entry.Item, entry.Priority);
+                    entryWithPriority.Item.StreamReaderIdx = streamReaderIndex;
+                    priorityQueue.Enqueue(entryWithPriority.Item, entryWithPriority.Priority);
                     continue;
                 }
 
