@@ -41,7 +41,7 @@ During the splitting phase, a source file is sequentially read and split into bl
 ### Sorting/Merging
 For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Test Task Comparer](https://github.com/dudinda/TestTask/blob/master/TestTask/Code/Comparers/TaskTemplateComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
 ### Merging
-The common merging strategy is to try to converge files from bottom to top forming a [B-Tree](https://en.wikipedia.org/wiki/B-tree). A possible chain is ```256 -> 64 -> 16 -> 4 -> 1```. Every ```MergePageSize``` opens ```MergeChunkSize``` streams, then reads the very first element, binds an index to it and continues to process every stream line-by-line sequentially enqueue a row to the priority queue, where the priority is set as a tuple of ```(<number>, <string>)``` using the [K-Way Merge](https://en.wikipedia.org/wiki/K-way_merge_algorithm). The first dequeued item is written to a target file. In case two drives are correctly set in the ```appsettings.json``` it is possible to merge files from one drive to another: ex: ```C:\\->E:\\->C:\\->```.
+The common merging strategy is to try to converge files from bottom to top forming a [B-Tree](https://en.wikipedia.org/wiki/B-tree). A possible chain is ```64 -> 16 -> 4 -> 1```. Every ```MergePageSize``` opens ```MergeChunkSize``` streams, then reads the very first element, binds an index to it and continues to process every stream line-by-line sequentially enqueue a row to the priority queue, where the priority is set as a tuple of ```(<number>, <string>)``` using the [K-Way Merge](https://en.wikipedia.org/wiki/K-way_merge_algorithm). The first dequeued item is written to a target file. In case two drives are correctly set in the ```appsettings.json``` it is possible to merge files from one drive to another: ex: ```C:\\->E:\\->C:\\->```.
 
 ***
 ## Strategy to merge a file 1 GB
@@ -73,7 +73,7 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
 ## Strategy to merge a file 10 GB
 
 Specifing the following settings the algorithm will split a file into 256 chunks ~41MB each and start processing 8 pages of 64 files.
-The general merging strategy: ```256 -> 64``` (during the Sorting/Merging Phase) ```-> 16 -> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
+The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
 "SorterSetting": {
