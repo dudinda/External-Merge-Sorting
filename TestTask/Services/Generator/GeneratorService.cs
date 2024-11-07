@@ -29,7 +29,7 @@ namespace TestTask.Services.Generator
                 var builder = new StringBuilder();
                 var maxNumber = _settings.MaxIntegerNumber + 1;
                 var maxWordLength = _settings.MaxWordLength + 1;
-                var wordsLength = words.Length - 1;
+                var wordsLength = words.Length;
                 while(writer.BaseStream.CanWrite && writer.BaseStream.Position <= sizeB && !token.IsCancellationRequested)
                 {
                     var numberOfWords = rnd.Next(1, maxWordLength);
