@@ -286,28 +286,34 @@ namespace TestTask.Services.Sorter
             await using var outputWriter = new StreamWriter(outputStream, bufferSize: _settings.SortOutputBufferSize);
             outputWriter.BaseStream.SetLength(targetSize);
 
-            while (!token.IsCancellationRequested && finishedStreamReaders.Count != streamReaders.Length)
+            try
             {
-                var entry = priorityQueue.Dequeue();
-                var streamReaderIndex = entry.StreamReaderIdx;
-                outputWriter.WriteLine(entry.Row.AsMemory());
-
-                var value = streamReaders[streamReaderIndex].ReadLine();
-                if(value.TryParseLine(out var entryWithPriority))
+                while (!token.IsCancellationRequested && finishedStreamReaders.Count != streamReaders.Length)
                 {
-                    entryWithPriority.Item.StreamReaderIdx = streamReaderIndex;
-                    priorityQueue.Enqueue(entryWithPriority.Item, entryWithPriority.Priority);
-                    continue;
+                    var entry = priorityQueue.Dequeue();
+                    var streamReaderIndex = entry.StreamReaderIdx;
+                    outputWriter.WriteLine(entry.Row.AsMemory());
+
+                    var value = streamReaders[streamReaderIndex].ReadLine();
+                    if (value.TryParseLine(out var entryWithPriority))
+                    {
+                        entryWithPriority.Item.StreamReaderIdx = streamReaderIndex;
+                        priorityQueue.Enqueue(entryWithPriority.Item, entryWithPriority.Priority);
+                        continue;
+                    }
+
+                    if (streamReaders[streamReaderIndex].EndOfStream)
+                    {
+                        finishedStreamReaders.Add(streamReaderIndex);
+                    }
                 }
 
-                if (streamReaders[streamReaderIndex].EndOfStream)
-                {
-                    finishedStreamReaders.Add(streamReaderIndex);
-                }
+                token.ThrowIfCancellationRequested();
             }
-
-            token.ThrowIfCancellationRequested();
-            Clean(streamReaders, filesToMerge, readerSourcePath);
+            finally
+            {
+                Clean(streamReaders, filesToMerge, readerSourcePath);
+            }
         }
 
         private StreamReader[]  InitKWayMergeFromStreams(
@@ -328,7 +334,7 @@ namespace TestTask.Services.Sorter
                 var sortedFilePath = Path.Combine(readerSourcePath, sortedFiles[i]);
                 var sortedFileStream = File.OpenRead(sortedFilePath);
                 var buffered = new BufferedStream(sortedFileStream);
-                streamReaders[i] = new StreamReader(sortedFileStream);
+                streamReaders[i] = new StreamReader(buffered);
                 var value = streamReaders[i].ReadLine();
                 if(value.TryParseLine(out var entry))
                 {
