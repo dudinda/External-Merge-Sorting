@@ -27,14 +27,17 @@ namespace TestTask.Services.Generator
             await using (var writer = new StreamWriter(fileName, append: false, Encoding.UTF8, 65536))
             {
                 var builder = new StringBuilder();
+                var maxNumber = _settings.MaxIntegerNumber + 1;
+                var maxWordLength = _settings.MaxWordLength + 1;
+                var wordsLength = words.Length - 1;
                 while(writer.BaseStream.CanWrite && writer.BaseStream.Position <= sizeB && !token.IsCancellationRequested)
                 {
-                    var numberOfWords = rnd.Next(1, _settings.MaxWordLength);
-                    while(numberOfWords-- >= 0)
+                    var numberOfWords = rnd.Next(1, maxWordLength);
+                    while(numberOfWords-- > 0)
                     {
-                        builder.Append($" {words[rnd.Next(words.Length - 1)]}");
+                        builder.Append($" {words[rnd.Next(wordsLength)]}");
                     }
-                    var result = $"{rnd.Next(_settings.MaxIntegerNumber)}.{builder.ToString()}";
+                    var result = $"{rnd.Next(maxNumber)}.{builder.ToString()}";
                     writer.WriteLine(result);
                     builder.Clear();
                 }
