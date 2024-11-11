@@ -95,7 +95,7 @@ namespace TestTask.Services.Sorter
                     if (extraBuffer.Count > 0)
                     {
                         ++totalRows;
-                        await unsortedFile.WriteAsync(extraBuffer.ToArray(), 0, extraBuffer.Count, token);
+                        unsortedFile.Write(extraBuffer.ToArray(), 0, extraBuffer.Count);
                     }
 
                     _fileToNumberOfLines.Add(filename, totalRows);
@@ -156,6 +156,7 @@ namespace TestTask.Services.Sorter
                     mergeTasks.Add(mergeTask);
 
                     sorted.Clear();
+                    sortedTasks.Clear();
                 }
                 start = pageStep * ++page;
             } while (start <= total);
@@ -184,7 +185,11 @@ namespace TestTask.Services.Sorter
             }
             token.ThrowIfCancellationRequested();
 
-            buffer.SortWith((x, y) => x.Str.CompareTo(y.Str), (x, y) => x.Int.CompareTo(y.Int));
+            try
+            {
+                buffer.SortWith(token, (x, y) => x.Str.CompareTo(y.Str), (x, y) => x.Int.CompareTo(y.Int));
+            }
+            catch(Exception ex) when (ex.InnerException is OperationCanceledException) { throw ex.InnerException; }
 
             using (var sorted = File.OpenWrite(sortedFilePath))
             {
@@ -192,13 +197,17 @@ namespace TestTask.Services.Sorter
                 using (var streamWriter = new StreamWriter(sorted, bufferSize: _settings.SortOutputBufferSize))
                 {
                     var builder = new StringBuilder();
-                    foreach (var row in buffer)
+                    var index = 0;
+                    (string Str, int Int) row;
+                    while(index < buffer.Length && !token.IsCancellationRequested)
                     {
+                        row = buffer[index];
                         builder.Append(row.Int).Append(".").Append(row.Str);
                         streamWriter.WriteLine(builder);
                         builder.Clear();
-                        token.ThrowIfCancellationRequested();
+                        ++index;
                     }
+                    token.ThrowIfCancellationRequested();
                     Array.Clear(buffer, 0, buffer.Length);
                 }
             }

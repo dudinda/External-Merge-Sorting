@@ -6,6 +6,7 @@ namespace TestTask.Models.Timer
     {
         private readonly string _description;
         private readonly Stopwatch _watch;
+
         public SimpleTimer(string description)
         {
             _description = description;
