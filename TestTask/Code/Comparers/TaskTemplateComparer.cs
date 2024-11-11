@@ -1,27 +1,32 @@
 ﻿namespace TestTask.Code.Comparers
 {
-    internal class TaskTemplateComparer<T> : IComparer<T>
+    internal class TaskTemplateComparer<T> : IComparer<T>, IDisposable
     {
-        private readonly IEnumerable<Comparison<T>> _comparisons;
+        private readonly IEnumerator<Comparison<T>> _iterator;
         private readonly CancellationToken _token;
 
         public TaskTemplateComparer(IEnumerable<Comparison<T>> comparisons, CancellationToken token = default)
         {
-            _comparisons = comparisons;
+            _iterator = comparisons.GetEnumerator();
             _token = token;
         }
 
         public int Compare(T x, T y)
         {
-            using var iterator = _comparisons.GetEnumerator();
-            while(iterator.MoveNext() && !_token.IsCancellationRequested)
+            _iterator.Reset();
+            while(_iterator.MoveNext() && !_token.IsCancellationRequested)
             {
-                var result = iterator.Current(x, y);
+                var result = _iterator.Current(x, y);
                 if (result != 0)
                     return result;
             }
             _token.ThrowIfCancellationRequested();
             return 0;
+        }
+
+        public void Dispose()
+        {
+            _iterator.Dispose();
         }
     }
 }

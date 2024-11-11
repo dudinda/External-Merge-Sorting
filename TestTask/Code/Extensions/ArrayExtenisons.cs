@@ -8,7 +8,8 @@ namespace TestTask.Code.Extensions
         {
             if (comparisons.Any())
             {
-                Array.Sort(source, 0, source.Length, new TaskTemplateComparer<T>(comparisons, token));
+                using var comparer = new TaskTemplateComparer<T>(comparisons, token);
+                Array.Sort(source, 0, source.Length, comparer);
             }
 
             return source;
