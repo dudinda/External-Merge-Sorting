@@ -10,11 +10,14 @@ namespace TestTask.Code.Extensions
             {
                 switch (ex)
                 {
-                    case var _ when ex is OperationCanceledException:
-                        context.ExitCode = -1;
+                    case OperationCanceledException:
+                        context.ExitCode = 130;
                         break;
-                    case var _ when ex is Exception:
-                        context.ExitCode = -2;
+                    case OutOfMemoryException:
+                        context.ExitCode = 137;
+                        break;
+                    case Exception:
+                        context.ExitCode = 1;
                         break;
                 }
                 Console.ForegroundColor = ConsoleColor.Red;
