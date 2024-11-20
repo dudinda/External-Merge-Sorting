@@ -15,7 +15,7 @@ namespace TestTask.Models.Settings
         {
             errors = new StringBuilder();
             if (string.IsNullOrEmpty(SplitReadPath))
-                errors.AppendLine("The target path for split chuck is not specified.");
+                errors.AppendLine("The target path to split chunks is not specified.");
             if (string.IsNullOrEmpty(SortReadPath))
                 errors.AppendLine("The target path to get unsorted files is not specified.");
             if (string.IsNullOrEmpty(SortWritePath))

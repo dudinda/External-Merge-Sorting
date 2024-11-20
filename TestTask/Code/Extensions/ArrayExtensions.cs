@@ -2,7 +2,7 @@
 
 namespace TestTask.Code.Extensions
 {
-    internal static class ArrayExtenisons
+    internal static class ArrayExtensions
     {
         public static T[] SortWith<T>(this T[] source, CancellationToken token, params Comparison<T>[] comparisons)
         {
