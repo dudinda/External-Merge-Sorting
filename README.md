@@ -14,7 +14,7 @@
 The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
 
 ```powershell
-.\TestTask.exe --help
+.\ExtSort.exe --help
 ```
 
 <p align="center">
@@ -24,12 +24,12 @@ The software provides a console interface with two verbs: [g]enerate, [s]ort for
 
 To generate a file with the size of 1 GB the following command can be executed:
 ```powershell
-.\TestTask.exe generate output.txt 1048576
+.\ExtSort.exe generate output.txt 1048576
 ```
 
 To start sorting a file with the correct data format the following command can be executed:
 ```powershell
-.\TestTask.exe sort output.txt output_sorted.txt 
+.\ExtSort.exe sort output.txt output_sorted.txt 
 ```
 
 ***
@@ -39,7 +39,7 @@ The provided software contains an implementation of the [External Sort](https://
 ### Splitting 
 During the splitting phase, a source file is sequentially read and split into blocks of ```FileSplitSizeKb``` size. For every chunk, the name is set as ```<counter>.unsorted```. In the end of each iteration the algorithm analyzes whether the current byte is set at the position of a line's end, and if not, continues to write byte-by-byte until the end of the line is met. After a file is persisted, a map of ```filename::number of lines``` is populated.
 ### Sorting/Merging
-For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Test Task Comparer](https://github.com/dudinda/TestTask/blob/master/TestTask/Code/Comparers/TaskTemplateComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
+For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Multi-Row Comparer](https://github.com/dudinda/External-Merge-Sorting/blob/master/ExtSort/Code/Comparers/MultiRowComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
 ### Merging
 The common merging strategy is to try to converge files from bottom to top forming a [B-Tree](https://en.wikipedia.org/wiki/B-tree). A possible chain is ```64 -> 16 -> 4 -> 1```. Every ```MergePageSize``` opens ```MergeChunkSize``` streams, then reads the very first element, binds an index to it and continues to process every stream line-by-line sequentially enqueue a row to the priority queue, where the priority is set as a tuple of ```(<number>, <string>)``` using the [K-Way Merge](https://en.wikipedia.org/wiki/K-way_merge_algorithm). The first dequeued item is written to a target file. In case two drives are correctly set in the ```appsettings.json``` it is possible to merge files from one drive to another: ex: ```C:\\->E:\\->C:\\->```.
 
