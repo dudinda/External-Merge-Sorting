@@ -14,7 +14,7 @@
 The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
 
 ```powershell
-.\TestTask.exe --help
+.\ExtSort.exe --help
 ```
 
 <p align="center">
@@ -24,12 +24,12 @@ The software provides a console interface with two verbs: [g]enerate, [s]ort for
 
 To generate a file with the size of 1 GB the following command can be executed:
 ```powershell
-.\TestTask.exe generate output.txt 1048576
+.\ExtSort.exe generate output.txt 1048576
 ```
 
 To start sorting a file with the correct data format the following command can be executed:
 ```powershell
-.\TestTask.exe sort output.txt output_sorted.txt 
+.\ExtSort.exe sort output.txt output_sorted.txt 
 ```
 
 ***
