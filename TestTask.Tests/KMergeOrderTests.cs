@@ -37,10 +37,10 @@ namespace TestTask.Tests
             for (var i = 0; i < array.Length; ++i)
             {
                 var value = array[i].Dequeue();
-                if (value.TryParseLine(out var entry))
+                if (value.TryParsePriority(out var priority))
                 {
-                    entry.Item.StreamReaderIdx = i;
-                    queue.Enqueue(entry.Item, entry.Priority);
+                    var row = new Entry() { Row = value, StreamReaderIdx = i };
+                    queue.Enqueue(row, priority);
                 }
             }
             var finishedLists = new HashSet<int>();
@@ -50,10 +50,10 @@ namespace TestTask.Tests
                 var streamReaderIndex = entry.StreamReaderIdx;
                 _result.Add(entry.Row);
 
-                if (array[streamReaderIndex].TryDequeue(out var value) && value.TryParseLine(out var entryWithPriority))
+                if (array[streamReaderIndex].TryDequeue(out var value) && value.TryParsePriority(out var priority))
                 {
-                    entryWithPriority.Item.StreamReaderIdx = streamReaderIndex;
-                    queue.Enqueue(entryWithPriority.Item, entryWithPriority.Priority);
+                    var row = new Entry() { Row = value, StreamReaderIdx = streamReaderIndex };
+                    queue.Enqueue(row, priority);
                     continue;
                 }
 

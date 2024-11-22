@@ -45,9 +45,9 @@ namespace TestTask.Tests
             var buffer = new (string Str, int Int)[_data.Length];
             for(var i = 0; i < _data.Length; ++i)
             {
-                if (_data[i].TryParseLine(out var entry))
+                if (_data[i].TryParsePriority(out var priority))
                 {
-                    buffer[i] = entry.Priority;
+                    buffer[i] = priority;
                 }
             }
 

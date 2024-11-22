@@ -175,9 +175,9 @@ namespace TestTask.Services.Sorter
                 while (!streamReader.EndOfStream && !token.IsCancellationRequested)
                 {
                     var value = streamReader.ReadLine();
-                    if (value.TryParseLine(out var row))
+                    if (value.TryParsePriority(out var priority))
                     {
-                        buffer[index] = row.Priority;
+                        buffer[index] = priority;
                         ++index;
                     }
                 }
@@ -202,7 +202,7 @@ namespace TestTask.Services.Sorter
                     while(index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
-                        builder.Append(row.Int).Append(".").Append(row.Str);
+                        builder.Append(row.Int).Append('.').Append(row.Str);
                         streamWriter.WriteLine(builder);
                         builder.Clear();
                         ++index;
@@ -304,10 +304,10 @@ namespace TestTask.Services.Sorter
                     outputWriter.WriteLine(entry.Row.AsMemory());
 
                     var value = streamReaders[streamReaderIndex].ReadLine();
-                    if (value.TryParseLine(out var entryWithPriority))
+                    if (value.TryParsePriority(out var priority))
                     {
-                        entryWithPriority.Item.StreamReaderIdx = streamReaderIndex;
-                        priorityQueue.Enqueue(entryWithPriority.Item, entryWithPriority.Priority);
+                        var row = new Entry() { Row = value, StreamReaderIdx = streamReaderIndex };
+                        priorityQueue.Enqueue(row, priority);
                         continue;
                     }
 
@@ -345,10 +345,10 @@ namespace TestTask.Services.Sorter
                 var buffered = new BufferedStream(sortedFileStream);
                 streamReaders[i] = new StreamReader(buffered);
                 var value = streamReaders[i].ReadLine();
-                if(value.TryParseLine(out var entry))
+                if(value.TryParsePriority(out var priority))
                 {
-                    entry.Item.StreamReaderIdx = i;
-                    queue.Enqueue(entry.Item, entry.Priority);
+                    var row = new Entry() { Row = value, StreamReaderIdx = i };
+                    queue.Enqueue(row, priority);
                 }
             }
 

@@ -4,27 +4,20 @@ namespace TestTask.Code.Extensions
 {
     internal static class StringExtensions
     {
-        public static bool TryParseLine(this string input, out EntryWithPriority result)
+        public static bool TryParsePriority(this string input, out (string Str, int Int) result)
         {
-            result = null;
+            result = default;
             if (string.IsNullOrEmpty(input))
                 return false;
 
-            if (!input.Contains("."))
-                return false;
-
-            var parts = input.Split(".");
-            if (int.TryParse(parts[0], out var integer))
+            var parts = input.Split('.');
+            if (parts.Length > 1)
             {
-                result = new EntryWithPriority
+                if (int.TryParse(parts[0], out var integer))
                 {
-                    Item = new Entry()
-                    {
-                        Row = input
-                    },
-                    Priority = (parts[1], integer)
-                };
-                return true;
+                    result = (parts[1], integer);
+                    return true;
+                }
             }
 
             return false;
