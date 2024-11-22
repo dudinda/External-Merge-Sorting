@@ -12,7 +12,7 @@ var config = new ConfigurationBuilder();
 var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 config.SetBasePath(path).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-var rootCommand = new RootCommand("Altium Test Task by Dudin D.A., 2024, Nov.");
+var rootCommand = new RootCommand("External merge sorting with an input generator");
 var factory = new CommandFactory(config.Build());
 foreach (var cmd in factory.Commands)
 {
