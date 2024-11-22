@@ -152,7 +152,8 @@ namespace TestTask.Services.Sorter
                     }
                     await Task.WhenAll(sortedTasks);
 
-                    var mergeTask = KWayMerge(new List<string>(sorted), mergeTargetLocation, mergeSourceLocation, chunkSize, 0, pageStepMerge, token);
+                    var sortedPage = sorted.ToList().Chunk(chunkSize).Skip(0).Take(pageStepMerge);
+                    var mergeTask = KWayMerge(sortedPage, mergeTargetLocation, mergeSourceLocation, token);
                     mergeTasks.Add(mergeTask);
 
                     sorted.Clear();
@@ -232,8 +233,10 @@ namespace TestTask.Services.Sorter
                 _mergeTempCounter = 0;
                 do
                 {
+                    var sortedPage = sortedFiles.Chunk(chunkSize).Skip(step).Take(pageStep);
+                    if (!sortedPage.Any()) break;
                     Console.WriteLine($"Page: {page + 1}");
-                    await KWayMerge(sortedFiles, mergeTargetLocation, mergeSourceLocation, chunkSize, step, pageStep, token);
+                    await KWayMerge(sortedPage, mergeTargetLocation, mergeSourceLocation, token);
                     step = ++page * pageStep;
                     start = step * chunkSize;
                 } while (start <= total);
@@ -253,12 +256,11 @@ namespace TestTask.Services.Sorter
             File.Move(resultPath, outputPath, true);
         }
 
-        private async Task KWayMerge(IReadOnlyList<string> sortedFiles,
-            string mergeTargetLocation, string mergeSourceLocation,
-            int chunkSize, int step, int pageStep, CancellationToken token)
+        private async Task KWayMerge(IEnumerable<string[]> sortedChunks,
+            string mergeTargetLocation, string mergeSourceLocation, CancellationToken token)
         {
             var tasks = new List<Task>();
-            foreach (var chunk in sortedFiles.Chunk(chunkSize).Skip(step).Take(pageStep))
+            foreach (var chunk in sortedChunks)
             {
                 var counter = Interlocked.Increment(ref _mergeTempCounter);
                 var outputFilename = $"{counter}{_SortedFileExtension}{_TempFileExtension}";
