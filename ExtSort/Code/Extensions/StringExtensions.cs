@@ -9,7 +9,7 @@
                 return false;
 
             var span = input.AsSpan();
-            var idx = input.IndexOf('.');
+            var idx = span.IndexOf('.');
             if (idx == -1)
                 return false;
 
