@@ -1,4 +1,4 @@
-# Altium Test Task by Dudin D. A., Nov 2024
+# External Merge Sorting
 
 1. [Console interface](#console-interface)
 2. [Algorithm](#algorithm)
