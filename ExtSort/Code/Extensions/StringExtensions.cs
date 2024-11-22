@@ -8,10 +8,14 @@
             if (string.IsNullOrEmpty(input))
                 return false;
 
-            var parts = input.Split('.');
-            if (parts.Length > 1 && int.TryParse(parts[0], out var integer))
+            var span = input.AsSpan();
+            var idx = input.IndexOf('.');
+            if (idx == -1)
+                return false;
+
+            if (int.TryParse(span.Slice(0, idx), out var integer))
             {
-                result = (parts[1], integer);
+                result = (span.Slice(idx + 1).ToString(), integer);
                 return true;
             }
 
