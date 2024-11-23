@@ -8,7 +8,7 @@ namespace ExtSort.Tests
     [TestClass]
     public class SortOrderTests
     {
-        private MultiRowComparer<(string Str, int Int)> _comparer;
+        private MultiColumnComparer<(string Str, int Int)> _comparer;
         private string[] _data;
         private string[] _correctData;
 
@@ -20,7 +20,7 @@ namespace ExtSort.Tests
                 (x, y) => x.Str.CompareTo(y.Str),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            _comparer = new MultiRowComparer<(string Str, int Int)>(comparisons);
+            _comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
             _data =
             [
                 "415. Apple",

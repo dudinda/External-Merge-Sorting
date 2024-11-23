@@ -1,11 +1,11 @@
 ﻿namespace ExtSort.Code.Comparers
 {
-    internal class MultiRowComparer<T> : IComparer<T>, IDisposable
+    internal class MultiColumnComparer<T> : IComparer<T>, IDisposable
     {
         private readonly IEnumerator<Comparison<T>> _iterator;
         private readonly CancellationToken _token;
 
-        public MultiRowComparer(IEnumerable<Comparison<T>> comparisons, CancellationToken token = default)
+        public MultiColumnComparer(IEnumerable<Comparison<T>> comparisons, CancellationToken token = default)
         {
             _iterator = comparisons.GetEnumerator();
             _token = token;
