@@ -7,7 +7,7 @@ namespace ExtSort.Tests
     [TestClass]
     public class KMergeOrderTests
     {
-        private MultiRowComparer<(string Str, int Int)> _comparer;
+        private MultiColumnComparer<(string Str, int Int)> _comparer;
         private Queue<string> _1stList;
         private Queue<string> _2ndList;
         private Queue<string> _3rdList;
@@ -21,7 +21,7 @@ namespace ExtSort.Tests
                 (x, y) => x.Str.CompareTo(y.Str),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            _comparer = new MultiRowComparer<(string Str, int Int)>(comparisons);
+            _comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
             _1stList = new Queue<string>(Get1stOrderedList());
             _2ndList = new Queue<string>(Get2ndOrderedList());
             _3rdList = new Queue<string>(Get3rdOrderedList());

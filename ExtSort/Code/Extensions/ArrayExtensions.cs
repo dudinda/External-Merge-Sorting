@@ -8,7 +8,7 @@ namespace ExtSort.Code.Extensions
         {
             if (comparisons.Any())
             {
-                using var comparer = new MultiRowComparer<T>(comparisons, token);
+                using var comparer = new MultiColumnComparer<T>(comparisons, token);
                 Array.Sort(source, 0, source.Length, comparer);
             }
 

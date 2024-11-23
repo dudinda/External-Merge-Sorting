@@ -55,6 +55,7 @@ namespace ExtSort.Services.Sorter
                 var currentFile = 0;
                 while (sourceStream.Position < sourceStream.Length && !token.IsCancellationRequested)
                 {
+                    Console.Write($"\rCurrent file: {currentFile + 1}{_UnsortedFileExtension}");
                     var totalRows = 0;
                     var runBytesRead = 0;
                     while (runBytesRead < fileSize && !token.IsCancellationRequested)
@@ -338,7 +339,7 @@ namespace ExtSort.Services.Sorter
                 (x, y) => x.Str.CompareTo(y.Str),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            var comparer = new MultiRowComparer<(string Str, int Int)>(comparisons);
+            var comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
             queue = new PriorityQueue<Entry, (string, int)>(sortedFiles.Count, comparer);
             for (var i = 0; i < sortedFiles.Count; i++)
             {

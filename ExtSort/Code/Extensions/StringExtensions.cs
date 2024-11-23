@@ -13,9 +13,9 @@
             if (idx == -1)
                 return false;
 
-            if (int.TryParse(span.Slice(0, idx), out var integer))
+            if (int.TryParse(span.Slice(0, idx), out result.Int))
             {
-                result = (span.Slice(idx + 1).ToString(), integer);
+                result.Str = span.Slice(idx + 1).ToString();
                 return true;
             }
 
