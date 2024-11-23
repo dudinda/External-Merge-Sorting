@@ -55,6 +55,7 @@ namespace ExtSort.Services.Sorter
                 var currentFile = 0;
                 while (sourceStream.Position < sourceStream.Length && !token.IsCancellationRequested)
                 {
+                    Console.Write($"\rCurrent file: {currentFile + 1}{_UnsortedFileExtension}");
                     var totalRows = 0;
                     var runBytesRead = 0;
                     while (runBytesRead < fileSize && !token.IsCancellationRequested)
