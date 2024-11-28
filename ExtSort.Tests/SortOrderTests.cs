@@ -1,7 +1,7 @@
-using System.Text;
-
 using ExtSort.Code.Comparers;
 using ExtSort.Code.Extensions;
+
+using System.Text;
 
 namespace ExtSort.Tests
 {
@@ -17,7 +17,7 @@ namespace ExtSort.Tests
         {
             var comparisons = new Comparison<(string Str, int Int)>[]
             {
-                (x, y) => x.Str.CompareTo(y.Str),
+                (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
             _comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
@@ -46,9 +46,7 @@ namespace ExtSort.Tests
             for(var i = 0; i < _data.Length; ++i)
             {
                 if (_data[i].TryParsePriority(out var priority))
-                {
                     buffer[i] = priority;
-                }
             }
 
             Array.Sort(buffer, 0, buffer.Length, _comparer);

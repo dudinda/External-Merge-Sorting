@@ -18,7 +18,7 @@ namespace ExtSort.Tests
         {
             var comparisons = new Comparison<(string Str, int Int)>[]
             {
-                (x, y) => x.Str.CompareTo(y.Str),
+                (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
             _comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
@@ -57,9 +57,7 @@ namespace ExtSort.Tests
                 }
 
                 if (array[streamReaderIndex].Count == 0)
-                {
                     finishedLists.Add(streamReaderIndex);
-                }
             }
 
             CollectionAssert.AreEqual(_result, CorrectMergeOrder().ToArray());
