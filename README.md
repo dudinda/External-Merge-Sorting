@@ -18,7 +18,7 @@ The software provides a console interface with two verbs: [g]enerate, [s]ort for
 ```
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/f948e35f-595e-42eb-a677-cb6431297b9e" width="600" height = "400" alt="original underexposed image">
+    <img src="https://github.com/user-attachments/assets/bbcbd3ca-c0c1-40a0-a27a-ed666e0dc3c6" width="600" height = "400" alt="original underexposed image">
     <p align="center">Fig. 1 - Using the option --help with the interface.</p>
 </p>
 
