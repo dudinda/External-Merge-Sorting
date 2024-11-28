@@ -11,9 +11,10 @@ namespace ExtSort.Services.Sorter.Implementation
 {
     public class SorterServiceIOBound : ISorterService
     {
-        private const string _UnsortedFileExtension = ".unsorted";
         internal const string _SortedFileExtension = ".sorted";
-        private const string _TempFileExtension = ".tmp";
+        internal const string _TempFileExtension = ".tmp";
+
+        private const string _UnsortedFileExtension = ".unsorted";
         private const int _EOF = -1;
         private const int _NULL = 0;
 

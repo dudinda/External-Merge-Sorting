@@ -7,10 +7,11 @@ namespace ExtSort.Services.Sorter
 {
     public class SorterServiceCPUBound : ISorterService
     {
+        private const string _SortedFileExtension = SorterServiceIOBound._SortedFileExtension;
+        private const string _TempFileExtension = SorterServiceIOBound._TempFileExtension;
+
         private readonly SorterSetting _settings;
         private readonly SorterServiceIOBound _ioBound;
-        internal const string _SortedFileExtension = ".sorted";
-        private const string _TempFileExtension = ".tmp";
 
         public SorterServiceCPUBound(SorterSetting settings)
         {
@@ -45,7 +46,7 @@ namespace ExtSort.Services.Sorter
                     var file = 1;
                     var page = 0;
                     var tasks = new List<Task>();
-                    while (!reader.EndOfStream && reader.BaseStream.Position <= totalRead && !token.IsCancellationRequested)
+                    while (!reader.EndOfStream && reader.BaseStream.Position < totalRead && !token.IsCancellationRequested)
                     {
                         var queue = _ioBound.BuildQueue(750000); 
                         Console.Write($"\rCurrent file: {file}");
@@ -62,11 +63,11 @@ namespace ExtSort.Services.Sorter
                             break;
                         token.ThrowIfCancellationRequested();
                         totalRead = reader.BaseStream.Position + fileSize;
-                        ++file;
                         tasks.Add(Task.Run(() =>
                         {
                             var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
                             using var writer = new StreamWriter(Path.Combine(_settings.IOPath.SortWritePath, fileName));
+                            writer.BaseStream.SetLength(fileSize);
                             Entry row;
                             while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
                             {
@@ -74,6 +75,7 @@ namespace ExtSort.Services.Sorter
                             }
                             token.ThrowIfCancellationRequested();
                         }, token));
+                        ++file;
                         if (tasks.Count == _settings.SortPageSize)
                         {
                             ++page;
