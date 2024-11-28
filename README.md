@@ -6,7 +6,7 @@
       - [Splitting Phase](#splitting)
       - [Sorting/Merging Phase](#sortingmerging)
    - [CPU Mode](#cpu-mode)
-      - [Splitting/Sorting Phase](#splitting) 
+      - [Splitting/Sorting Phase](#splittingsorting) 
    - [Merging Phase](#merging)
 3. [Strategy to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
 4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
@@ -47,8 +47,8 @@ During the splitting phase, a source file is sequentially read and split into ``
 #### Sorting/Merging
 For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Multi-Column Comparer](https://github.com/dudinda/External-Merge-Sorting/blob/master/ExtSort/Code/Comparers/MultiColumnComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
 ### CPU Mode
-#### Splitting 
-During the splitting phase, a source file is sequentially read and split into ```NumberOfFiles``` chunks. For every chunk, a priority is calculated and linked with the original row using a priority queue size of ```BufferCapacityLines```. At the end of each iteration, the algorithm starts to dequeue the priority queue into a file with the ```.sorted.tmp``` extension. When there are ```SortPageSize``` tasks, they are awaited until all of them are completed.
+#### Splitting/Sorting 
+During the splitting phase, a source file is sequentially read and split into blocks of ```FileSplitSizeKb``` size. For every chunk, a priority is calculated and linked with the original row using a priority queue size of ```BufferCapacityLines```. At the end of each iteration, the algorithm starts to dequeue the priority queue into a file with the ```.sorted.tmp``` extension. When there are ```SortPageSize``` tasks, they are awaited until all of them are completed.
 ### Merging
 The common merging strategy is to try to converge files from bottom to top forming a [B-Tree](https://en.wikipedia.org/wiki/B-tree). A possible chain is ```64 -> 16 -> 4 -> 1```. Every ```MergePageSize``` opens ```MergeChunkSize``` streams, then reads the very first element, binds an index to it and continues to process every stream line-by-line sequentially enqueue a row to the priority queue, where the priority is set as a tuple of ```(<number>, <string>)``` using the [K-Way Merge](https://en.wikipedia.org/wiki/K-way_merge_algorithm). The first dequeued item is written to a target file. In case two drives are correctly set in the ```appsettings.json``` it is possible to merge files from one drive to another: ex: ```C:\\->E:\\->C:\\->```.
 
@@ -56,15 +56,15 @@ The common merging strategy is to try to converge files from bottom to top formi
 ## Strategy to merge a file 1 GB
 
 Specifying the following settings the algorithm will split a file into 64 chunks ~16MB each and start processing 4 pages of 16 files.
-The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the two drives C:\\ and E:\\. 
+The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging Phase) ``` -> 1``` (during the Merging Phase). All operations will be performed within the two drives C:\\ and E:\\. 
 
 ```json
 "SorterSettings": {
   "NumberOfFiles": 64,
   "SortPageSize": 16,
-  "SortOutputBufferSize": 81920,
-  "MergePageSize": 4,
-  "MergeChunkSize": 4,
+  "SortOutputBufferSize": 2097152,
+  "MergePageSize": 1,
+  "MergeChunkSize": 16,
   "MergeOutputBufferSize": 16777216,
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
@@ -77,8 +77,8 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
   "BufferCapacityLines": 720000
 },
 "SorterIOSettings": {
-  "SortThenMergePageSize": 8,
-  "SortThenMergeChunkSize": 8
+  "SortThenMergePageSize": 4,
+  "SortThenMergeChunkSize": 4
 }
 ```
 ***
