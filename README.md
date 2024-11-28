@@ -63,7 +63,7 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
   "NumberOfFiles": 64,
   "SortPageSize": 16,
   "SortOutputBufferSize": 2097152,
-  "MergePageSize": 1,
+  "MergePageSize": 4,
   "MergeChunkSize": 16,
   "MergeOutputBufferSize": 16777216,
   "IOPath": {
