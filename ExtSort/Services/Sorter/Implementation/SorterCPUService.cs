@@ -74,22 +74,22 @@ namespace ExtSort.Services.Sorter
                             if (reader.BaseStream.Position >= totalRead)
                                 break;
                         }
-
-                        if (string.IsNullOrEmpty(line))
-                            break;
                         token.ThrowIfCancellationRequested();
                         totalRead = reader.BaseStream.Position + fileSize;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
 
                         tasks.Add(Task.Run(() =>
                         {
-                            using (var writer = new StreamWriter(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
+                            using (var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
                             {
-                                writer.BaseStream.SetLength(fileSize);
-                                string row;
-                                while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
-                                    writer.WriteLine(row.AsMemory());
-                                token.ThrowIfCancellationRequested();
+                                stream.SetLength(fileSize);
+                                using (var writer = new StreamWriter(stream, bufferSize: _settings.SortOutputBufferSize))
+                                {
+                                    string row;
+                                    while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
+                                        writer.WriteLine(row.AsMemory());
+                                    token.ThrowIfCancellationRequested();
+                                }
                             }
                         }, token));
 
