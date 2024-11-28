@@ -39,7 +39,6 @@ namespace ExtSort.Services.Factories
                         throw new InvalidOperationException(errors.ToString());
                     return new SorterCPUService(settings as SorterCPUSettings);
             }
-
             throw new NotSupportedException(mode.ToString());
         }
     }

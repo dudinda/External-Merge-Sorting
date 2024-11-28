@@ -44,8 +44,7 @@ namespace ExtSort.Services.Sorter
             await _io.MergeFiles(sortedFiles, dstFile, token);
         }
 
-        private async Task SplitFile(
-            string srcFile, long numberOfFiles, CancellationToken token)
+        private async Task SplitFile(string srcFile, long numberOfFiles, CancellationToken token)
         {
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
             if (!Directory.Exists(_settings.IOPath.SplitReadPath))

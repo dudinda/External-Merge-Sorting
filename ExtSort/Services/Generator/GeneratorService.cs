@@ -33,16 +33,13 @@ namespace ExtSort.Services.Generator
                 {
                     var numberOfWords = rnd.Next(minWordLength, maxWordLength);
                     while(numberOfWords-- > 0)
-                    {
                         builder.Append($" {words[rnd.Next(wordsLength)]}");
-                    }
 
                     target.Append(rnd.Next(maxNumber)).Append('.').Append(builder);
                     writer.WriteLine(target);
                     builder.Clear();
                     target.Clear();
                 }
-
                 token.ThrowIfCancellationRequested();
             }
         }
