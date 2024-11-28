@@ -6,11 +6,11 @@
     },
     "SorterCPUDebugProfile": {
       "commandName": "Project",
-      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt CPU"
+      "commandLineArgs": "sort \"output.txt\" \"output_sorted.txt\" CPU"
     },
     "SorterIODebugProfile": {
       "commandName": "Project",
-      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt IO"
+      "commandLineArgs": "sort \"output.txt\" \"output_sorted.txt\" IO"
     },
     "HelpProfile": {
       "commandName": "Project",

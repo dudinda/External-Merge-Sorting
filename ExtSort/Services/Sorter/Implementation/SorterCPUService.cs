@@ -30,9 +30,9 @@ namespace ExtSort.Services.Sorter
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)
         {
-            if (string.IsNullOrEmpty(srcFile))
+            if (string.IsNullOrWhiteSpace(srcFile))
                 throw new InvalidOperationException("The name of a source file cannot be empty");
-            if (string.IsNullOrEmpty(dstFile))
+            if (string.IsNullOrWhiteSpace(dstFile))
                 throw new InvalidOperationException("The name of a destination file cannot be empty");
 
             Console.WriteLine("--Splitting/Sorting--");
@@ -83,12 +83,14 @@ namespace ExtSort.Services.Sorter
 
                         tasks.Add(Task.Run(() =>
                         {
-                            using var writer = new StreamWriter(Path.Combine(_settings.IOPath.SortWritePath, fileName));
-                            writer.BaseStream.SetLength(fileSize);
-                            string row;
-                            while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
-                                writer.WriteLine(row.AsMemory());
-                            token.ThrowIfCancellationRequested();
+                            using (var writer = new StreamWriter(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
+                            {
+                                writer.BaseStream.SetLength(fileSize);
+                                string row;
+                                while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
+                                    writer.WriteLine(row.AsMemory());
+                                token.ThrowIfCancellationRequested();
+                            }
                         }, token));
 
                         if (tasks.Count == _settings.SortPageSize)
@@ -102,6 +104,11 @@ namespace ExtSort.Services.Sorter
                 }
                 token.ThrowIfCancellationRequested();
             }
+        }
+
+        public void Dispose()
+        {
+            _io.Dispose();
         }
     }
 }
