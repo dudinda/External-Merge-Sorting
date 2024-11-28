@@ -1,22 +1,21 @@
 ﻿using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
-using ExtSort.Models.Sorter;
 using ExtSort.Services.Sorter.Implementation;
 
 namespace ExtSort.Services.Sorter
 {
-    public class SorterServiceCPUBound : ISorterService
+    public class SorterCPUService : ISorterService
     {
-        private const string _SortedFileExtension = SorterServiceIOBound._SortedFileExtension;
-        private const string _TempFileExtension = SorterServiceIOBound._TempFileExtension;
+        private const string _SortedFileExtension = SorterIOService._SortedFileExtension;
+        private const string _TempFileExtension = SorterIOService._TempFileExtension;
 
         private readonly SorterSetting _settings;
-        private readonly SorterServiceIOBound _ioBound;
+        private readonly SorterIOService _io;
 
-        public SorterServiceCPUBound(SorterSetting settings)
+        public SorterCPUService(SorterSetting settings)
         {
             _settings = settings;
-            _ioBound = new SorterServiceIOBound(settings);
+            _io = new SorterIOService(settings);
         }
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)
@@ -26,8 +25,8 @@ namespace ExtSort.Services.Sorter
             await SplitFile(srcFile, _settings.FileSplitSizeKb, token);
 
             Console.WriteLine($"{Environment.NewLine}--Merging--");
-            var sortedFiles = _ioBound.MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
-            await _ioBound.MergeFiles(sortedFiles, dstFile, token);
+            var sortedFiles = _io.MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
+            await _io.MergeFiles(sortedFiles, dstFile, token);
         }
 
         private async Task SplitFile(
@@ -48,14 +47,14 @@ namespace ExtSort.Services.Sorter
                     var tasks = new List<Task>();
                     while (!reader.EndOfStream && reader.BaseStream.Position < totalRead && !token.IsCancellationRequested)
                     {
-                        var queue = _ioBound.BuildQueue(750000); 
+                        var queue = _io.BuildQueue<string>(750000); 
                         Console.Write($"\rCurrent file: {file}");
                         string line;
                         while ((line = reader.ReadLine()) != null &&
                                 line.TryParsePriority(out var priority) &&
                                 !token.IsCancellationRequested)
                         {
-                            queue.Enqueue(new Entry() { Row = line }, priority);
+                            queue.Enqueue(line, priority);
                             if (reader.BaseStream.Position >= totalRead)
                                 break;
                         }
@@ -68,11 +67,9 @@ namespace ExtSort.Services.Sorter
                             var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
                             using var writer = new StreamWriter(Path.Combine(_settings.IOPath.SortWritePath, fileName));
                             writer.BaseStream.SetLength(fileSize);
-                            Entry row;
+                            string row;
                             while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
-                            {
-                                writer.WriteLine(row.Row.AsMemory());
-                            }
+                                writer.WriteLine(row.AsMemory());
                             token.ThrowIfCancellationRequested();
                         }, token));
                         ++file;
