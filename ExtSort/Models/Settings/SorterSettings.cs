@@ -4,7 +4,7 @@ namespace ExtSort.Models.Settings
 {
     public class SorterSettings 
     {
-        public int FileSplitSizeKb { get; init; } = 15625;
+        public int NumberOfFiles { get; init; } = 64;
         public ReadWritePath IOPath { get; init; } = new ReadWritePath(); 
         public char NewLineSeparator { get; init; } = '\n';
 
@@ -17,7 +17,7 @@ namespace ExtSort.Models.Settings
         public virtual bool Validate(out StringBuilder errors)
         {
             errors = new StringBuilder();
-            if(FileSplitSizeKb <= 0)
+            if(NumberOfFiles <= 0)
                 errors.AppendLine("Chunk size must be greater than 0 (kb)");
             if (SortPageSize <= 0)
                 errors.AppendLine("Sort page size must be greater than 0");

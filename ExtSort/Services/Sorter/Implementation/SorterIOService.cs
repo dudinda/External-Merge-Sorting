@@ -35,7 +35,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 throw new InvalidOperationException("The name of a destination file cannot be empty");
 
             Console.WriteLine("--Splitting--");
-            var files = await SplitFile(srcFile, _settings.FileSplitSizeKb, token);
+            var files = await SplitFile(srcFile, _settings.NumberOfFiles, token);
 
             Console.WriteLine($"{Environment.NewLine}--Sorting/Merging--");
             var mergeTasks = await SortFiles(files, token);
@@ -47,19 +47,21 @@ namespace ExtSort.Services.Sorter.Implementation
         }
 
         private async Task<IReadOnlyCollection<string>> SplitFile(
-            string srcFile, long fileSizeKb, CancellationToken token)
+            string srcFile, long numberOfFiles, CancellationToken token)
         {
-            var fileSize = fileSizeKb * 1024;
-            var buffer = new byte[fileSize];
-            var extraBuffer = new List<byte>();
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
             if (!Directory.Exists(_settings.IOPath.SplitReadPath))
                 throw new InvalidOperationException($"Directory {_settings.IOPath.SplitReadPath} does not exist.");
-            Console.WriteLine($"Splitting {srcFile} into files of the {fileSizeKb / 1024:0.###} MB");
             await using (var sourceStream = File.OpenRead(srcPath))
             {
+                var fileSize = sourceStream.Length / numberOfFiles;
+                var totalRead = 0l;
                 var currentFile = 0;
-                while (sourceStream.Position < sourceStream.Length && !token.IsCancellationRequested)
+                var tasks = new List<Task>();
+                var buffer = new byte[fileSize];
+                var extraBuffer = new List<byte>();
+                Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
+                while (sourceStream.Length > totalRead && !token.IsCancellationRequested)
                 {
                     Console.Write($"\rCurrent file: {++currentFile}{_UnsortedFileExtension}");
                     var totalRows = 0;
@@ -98,14 +100,15 @@ namespace ExtSort.Services.Sorter.Implementation
                     var filename = $"{currentFile}{_UnsortedFileExtension}";
                  
                     await using var unsortedFile = File.Create(Path.Combine(_settings.IOPath.SortReadPath, filename));
-                    unsortedFile.SetLength(runBytesRead + extraBuffer.Count);
+                    var targetSize = runBytesRead + extraBuffer.Count;
+                    unsortedFile.SetLength(targetSize);
                     await unsortedFile.WriteAsync(buffer, 0, runBytesRead, token);
                     if (extraBuffer.Count > 0)
                     {
                         ++totalRows;
                         unsortedFile.Write(extraBuffer.ToArray(), 0, extraBuffer.Count);
                     }
-
+                    totalRead += targetSize;
                     _fileToNumberOfLines.Add(filename, totalRows);
                     Array.Clear(buffer, 0, runBytesRead);
                     extraBuffer.Clear();
