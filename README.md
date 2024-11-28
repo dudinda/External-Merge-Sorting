@@ -18,7 +18,7 @@ The software provides a console interface with two verbs: [g]enerate, [s]ort for
 ```
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/bbcbd3ca-c0c1-40a0-a27a-ed666e0dc3c6" width="600" height = "400" alt="original underexposed image">
+    <img src="https://github.com/user-attachments/assets/6c2fe6a2-4a60-46f5-b82d-cd45fa2741eb" width="600" height = "400" alt="original underexposed image">
     <p align="center">Fig. 1 - Using the option --help with the interface.</p>
 </p>
 
@@ -29,7 +29,7 @@ To generate a file with the size of 1 GB the following command can be executed:
 
 To start sorting a file with the correct data format the following command can be executed:
 ```powershell
-.\ExtSort.exe sort output.txt output_sorted.txt 
+.\ExtSort.exe sort output.txt output_sorted.txt IOBound
 ```
 
 ***
