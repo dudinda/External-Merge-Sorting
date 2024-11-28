@@ -71,7 +71,7 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
     "SortWritePath": "E:\\Temp\\Files",
     "MergeStartPath": "E:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
-  },
+  }
 },
 "SorterCPUSettings": {
   "BufferCapacityLines": 720000
@@ -101,7 +101,7 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
     "SortWritePath": "C:\\Temp\\Files",
     "MergeStartPath": "C:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
-  },
+  }
 },
 "SorterCPUSettings": {
   "BufferCapacityLines": 2000000
