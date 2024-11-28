@@ -2,7 +2,7 @@
 
 namespace ExtSort.Models.Settings
 {
-    public class SorterSetting 
+    public class SorterSettings 
     {
         public int FileSplitSizeKb { get; init; } = 15625;
         public ReadWritePath IOPath { get; init; } = new ReadWritePath(); 
@@ -10,14 +10,11 @@ namespace ExtSort.Models.Settings
 
         public int SortPageSize { get; init; } = 16;
         public int SortOutputBufferSize { get; init; } = 81920;
-        public int SortThenMergePageSize { get; init; } = 4;
-        public int SortThenMergeChunkSize { get; init; } = 4;
-
         public int MergePageSize { get; init; } = 4;
         public int MergeChunkSize { get; init; } = 4;
         public int MergeOutputBufferSize { get; init; } = 81920;
 
-        public bool Validate(out StringBuilder errors)
+        public virtual bool Validate(out StringBuilder errors)
         {
             errors = new StringBuilder();
             if(FileSplitSizeKb <= 0)

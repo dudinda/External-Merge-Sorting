@@ -49,7 +49,7 @@ namespace ExtSort.Services.Factories
                     throw new InvalidCastException("The length of the output file is in incorrect format.");
                 result.TargetFileSizeKb = fileSize;
 
-                var settings = _config.GetSection(nameof(GeneratorSetting)).Get<GeneratorSetting>();
+                var settings = _config.GetSection(nameof(GeneratorSettings)).Get<GeneratorSettings>();
                 if (!settings.Validate(out var errors))
                     throw new InvalidOperationException(errors.ToString());
 
@@ -79,11 +79,7 @@ namespace ExtSort.Services.Factories
                 result.SourceFileName = (string)parser.GetValueForArgument(args[nameof(result.SourceFileName)]);
                 result.Mode = (SortMode)parser.GetValueForArgument(args[nameof(result.Mode)]);
 
-                var settings = _config.GetSection(nameof(SorterSetting)).Get<SorterSetting>();
-                if (!settings.Validate(out var errors))
-                    throw new InvalidOperationException(errors.ToString());
-
-                var factory = new SortModeFactory(settings);
+                var factory = new SortModeFactory(_config);
                 var service = factory.Get(result.Mode);
                 using var timer = new SimpleTimer("Sorting a file");
                 await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());

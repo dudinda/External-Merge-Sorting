@@ -3,7 +3,6 @@ using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Sorter;
 
-using System;
 using System.Collections.Concurrent;
 using System.Text;
 
@@ -18,14 +17,14 @@ namespace ExtSort.Services.Sorter.Implementation
         private const int _EOF = -1;
         private const int _NULL = 0;
 
-        private readonly SorterSetting _settings;
+        private readonly SorterIOSettings _settings;
 
         private int _mergeTempCounter = 0;
         private Dictionary<string, int> _fileToNumberOfLines = new();
 
-        public SorterIOService(SorterSetting settings)
+        public SorterIOService(SorterIOSettings settings)
         {
-            _settings = settings;
+            _settings = settings ?? throw new NullReferenceException(nameof(settings));
         }
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)

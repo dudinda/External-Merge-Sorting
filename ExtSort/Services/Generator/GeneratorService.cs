@@ -7,9 +7,9 @@ namespace ExtSort.Services.Generator
 {
     public class GeneratorService
     {
-        private readonly GeneratorSetting _settings;
+        private readonly GeneratorSettings _settings;
 
-        public GeneratorService(GeneratorSetting settings)
+        public GeneratorService(GeneratorSettings settings)
         {
             _settings = settings;
         }

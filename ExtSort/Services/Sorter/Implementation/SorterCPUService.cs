@@ -9,13 +9,23 @@ namespace ExtSort.Services.Sorter
         private const string _SortedFileExtension = SorterIOService._SortedFileExtension;
         private const string _TempFileExtension = SorterIOService._TempFileExtension;
 
-        private readonly SorterSetting _settings;
+        private readonly SorterCPUSettings _settings;
         private readonly SorterIOService _io;
 
-        public SorterCPUService(SorterSetting settings)
+        public SorterCPUService(SorterCPUSettings settings)
         {
-            _settings = settings;
-            _io = new SorterIOService(settings);
+            _settings = settings ?? throw new NullReferenceException(nameof(settings));
+            _io = new SorterIOService(new SorterIOSettings()
+            {
+                FileSplitSizeKb = settings.FileSplitSizeKb,
+                IOPath = settings.IOPath,
+                NewLineSeparator = settings.NewLineSeparator,
+                SortPageSize = settings.SortPageSize,
+                SortOutputBufferSize = settings.SortOutputBufferSize,
+                MergePageSize = settings.MergePageSize,
+                MergeChunkSize = settings.MergeChunkSize,
+                MergeOutputBufferSize = settings.MergeOutputBufferSize,
+            });
         }
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)
@@ -47,7 +57,7 @@ namespace ExtSort.Services.Sorter
                     var tasks = new List<Task>();
                     while (!reader.EndOfStream && reader.BaseStream.Position < totalRead && !token.IsCancellationRequested)
                     {
-                        var queue = _io.BuildQueue<string>(750000); 
+                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines); 
                         Console.Write($"\rCurrent file: {file}");
                         string line;
                         while ((line = reader.ReadLine()) != null &&
