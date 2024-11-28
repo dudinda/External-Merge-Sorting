@@ -29,6 +29,11 @@ namespace ExtSort.Services.Sorter.Implementation
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)
         {
+            if (string.IsNullOrEmpty(srcFile))
+                throw new InvalidOperationException("The name of a source file cannot be empty");
+            if (string.IsNullOrEmpty(dstFile))
+                throw new InvalidOperationException("The name of a destination file cannot be empty");
+
             Console.WriteLine("--Splitting--");
             var files = await SplitFile(srcFile, _settings.FileSplitSizeKb, token);
 
@@ -54,10 +59,9 @@ namespace ExtSort.Services.Sorter.Implementation
             await using (var sourceStream = File.OpenRead(srcPath))
             {
                 var currentFile = 0;
-                var lineStart = 0l;
                 while (sourceStream.Position < sourceStream.Length && !token.IsCancellationRequested)
                 {
-                    Console.Write($"\rCurrent file: {currentFile + 1}{_UnsortedFileExtension}");
+                    Console.Write($"\rCurrent file: {++currentFile}{_UnsortedFileExtension}");
                     var totalRows = 0;
                     var runBytesRead = 0;
                     while (runBytesRead < fileSize && !token.IsCancellationRequested)
@@ -65,7 +69,6 @@ namespace ExtSort.Services.Sorter.Implementation
                         var value = sourceStream.ReadByte();
                         if (value == _EOF || value == _NULL)
                         {
-                            lineStart = sourceStream.Position + 1;
                             break;
                         }
 
