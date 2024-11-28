@@ -17,7 +17,7 @@ namespace ExtSort.Services.Sorter
             _settings = settings ?? throw new NullReferenceException(nameof(settings));
             _io = new SorterIOService(new SorterIOSettings()
             {
-                FileSplitSizeKb = settings.FileSplitSizeKb,
+                NumberOfFiles = settings.NumberOfFiles,
                 IOPath = settings.IOPath,
                 NewLineSeparator = settings.NewLineSeparator,
                 SortPageSize = settings.SortPageSize,
@@ -37,7 +37,7 @@ namespace ExtSort.Services.Sorter
 
             Console.WriteLine("--Splitting/Sorting--");
             Console.WriteLine($"Page size: {_settings.SortPageSize}");
-            await SplitFile(srcFile, _settings.FileSplitSizeKb, token);
+            await SplitFile(srcFile, _settings.NumberOfFiles, token);
 
             Console.WriteLine($"{Environment.NewLine}--Merging--");
             var sortedFiles = _io.MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
@@ -45,22 +45,22 @@ namespace ExtSort.Services.Sorter
         }
 
         private async Task SplitFile(
-            string srcFile, long fileSizeKb, CancellationToken token)
+            string srcFile, long numberOfFiles, CancellationToken token)
         {
-            var fileSize = fileSizeKb * 1024;
-            var totalRead = fileSize;
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
             if (!Directory.Exists(_settings.IOPath.SplitReadPath))
                 throw new InvalidOperationException($"Directory {_settings.IOPath.SplitReadPath} does not exist.");
-            Console.WriteLine($"Splitting {srcFile} into files of the {fileSizeKb / 1024:0.###} MB");
             await using (var sourceStream = File.OpenRead(srcPath))
             {
                 using (var reader = new StreamReader(sourceStream))
                 {
+                    var fileSize = sourceStream.Length / numberOfFiles;
+                    var totalRead = 0l;
                     var file = 0;
                     var page = 0;
                     var tasks = new List<Task>();
-                    while (!reader.EndOfStream && reader.BaseStream.Position < totalRead && !token.IsCancellationRequested)
+                    Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
+                    while (!reader.EndOfStream && sourceStream.Length > totalRead && !token.IsCancellationRequested)
                     {
                         var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
                         Console.Write($"\rCurrent file: {++file}");
@@ -71,11 +71,11 @@ namespace ExtSort.Services.Sorter
                                 !token.IsCancellationRequested)
                         {
                             queue.Enqueue(line, priority);
-                            if (reader.BaseStream.Position >= totalRead)
+                            if (sourceStream.Position >= totalRead)
                                 break;
                         }
                         token.ThrowIfCancellationRequested();
-                        totalRead = reader.BaseStream.Position + fileSize;
+                        totalRead = sourceStream.Position + fileSize;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
 
                         tasks.Add(Task.Run(() =>
