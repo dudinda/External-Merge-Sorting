@@ -18,7 +18,7 @@ namespace ExtSort.Models.Settings
         {
             errors = new StringBuilder();
             if(NumberOfFiles <= 0)
-                errors.AppendLine("Chunk size must be greater than 0 (kb)");
+                errors.AppendLine("The number of chunks be greater than 0");
             if (SortPageSize <= 0)
                 errors.AppendLine("Sort page size must be greater than 0");
             if (!IOPath.Validate(out var ioerrors))
