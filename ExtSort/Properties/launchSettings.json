@@ -6,7 +6,7 @@
     },
     "SorterDebugProfile": {
       "commandName": "Project",
-      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt"
+      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt CPUBound"
     },
     "HelpProfile": {
       "commandName": "Project",

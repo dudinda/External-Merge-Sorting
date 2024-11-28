@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-
-using System.CommandLine;
-
-using ExtSort.Code.Constants;
+﻿using ExtSort.Code.Constants;
+using ExtSort.Code.Enums;
 using ExtSort.Models.Arguments;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
 using ExtSort.Services.Generator;
-using ExtSort.Services.Sorter;
+
+using Microsoft.Extensions.Configuration;
+
+using System.CommandLine;
 
 namespace ExtSort.Services.Factories
 {
@@ -77,12 +77,14 @@ namespace ExtSort.Services.Factories
                 var result = new SorterArgument();
                 result.TargetFileName = (string)parser.GetValueForArgument(args[nameof(result.TargetFileName)]);
                 result.SourceFileName = (string)parser.GetValueForArgument(args[nameof(result.SourceFileName)]);
+                result.Mode = (SortMode)parser.GetValueForArgument(args[nameof(result.Mode)]);
 
                 var settings = _config.GetSection(nameof(SorterSetting)).Get<SorterSetting>();
                 if (!settings.Validate(out var errors))
                     throw new InvalidOperationException(errors.ToString());
 
-                var service = new SorterService(settings);
+                var factory = new SortModeFactory(settings);
+                var service = factory.Get(result.Mode);
                 using var timer = new SimpleTimer("Sorting a file");
                 await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());
             });

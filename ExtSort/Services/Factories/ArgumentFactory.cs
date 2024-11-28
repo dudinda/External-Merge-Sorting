@@ -1,7 +1,8 @@
-﻿using System.CommandLine;
-
+﻿using ExtSort.Code.Enums;
 using ExtSort.Models;
 using ExtSort.Models.Arguments;
+
+using System.CommandLine;
 
 namespace ExtSort.Services.Factories
 {
@@ -21,6 +22,11 @@ namespace ExtSort.Services.Factories
             {
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(SorterArgument.TargetFileName)
+            };
+            yield return new ExtSortArgument<SortMode>("sort_mode", () => SortMode.IOBound, "A mode to sort an output")
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                TargetPropertyName = nameof(SorterArgument.Mode)
             };
         }
 

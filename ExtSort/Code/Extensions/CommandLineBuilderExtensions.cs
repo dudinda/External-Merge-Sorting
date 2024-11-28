@@ -1,4 +1,6 @@
-﻿using System.CommandLine.Builder;
+﻿using ExtSort.Code.Enums;
+
+using System.CommandLine.Builder;
 
 namespace ExtSort.Code.Extensions
 {
@@ -11,13 +13,13 @@ namespace ExtSort.Code.Extensions
                 switch (ex)
                 {
                     case OperationCanceledException:
-                        context.ExitCode = 130;
+                        context.ExitCode = (int)ExitCode.OperationCancelled;
                         break;
                     case OutOfMemoryException:
-                        context.ExitCode = 137;
+                        context.ExitCode = (int)ExitCode.OutOfMemory;
                         break;
                     case Exception:
-                        context.ExitCode = 1;
+                        context.ExitCode = (int)ExitCode.Custom;
                         break;
                 }
                 Console.ForegroundColor = ConsoleColor.Red;

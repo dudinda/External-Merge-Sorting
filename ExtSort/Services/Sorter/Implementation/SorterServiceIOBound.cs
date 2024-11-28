@@ -1,17 +1,18 @@
-﻿using System.Collections.Concurrent;
-using System.Text;
-
-using ExtSort.Code.Comparers;
+﻿using ExtSort.Code.Comparers;
 using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Sorter;
 
-namespace ExtSort.Services.Sorter
+using System;
+using System.Collections.Concurrent;
+using System.Text;
+
+namespace ExtSort.Services.Sorter.Implementation
 {
-    public class SorterService 
+    public class SorterServiceIOBound : ISorterService
     {
         private const string _UnsortedFileExtension = ".unsorted";
-        private const string _SortedFileExtension = ".sorted";
+        internal const string _SortedFileExtension = ".sorted";
         private const string _TempFileExtension = ".tmp";
         private const int _EOF = -1;
         private const int _NULL = 0;
@@ -21,7 +22,7 @@ namespace ExtSort.Services.Sorter
         private int _mergeTempCounter = 0;
         private Dictionary<string, int> _fileToNumberOfLines = new();
 
-        public SorterService(SorterSetting settings)
+        public SorterServiceIOBound(SorterSetting settings)
         {
             _settings = settings;
         }
@@ -53,6 +54,7 @@ namespace ExtSort.Services.Sorter
             await using (var sourceStream = File.OpenRead(srcPath))
             {
                 var currentFile = 0;
+                var lineStart = 0l;
                 while (sourceStream.Position < sourceStream.Length && !token.IsCancellationRequested)
                 {
                     Console.Write($"\rCurrent file: {currentFile + 1}{_UnsortedFileExtension}");
@@ -63,6 +65,7 @@ namespace ExtSort.Services.Sorter
                         var value = sourceStream.ReadByte();
                         if (value == _EOF || value == _NULL)
                         {
+                            lineStart = sourceStream.Position + 1;
                             break;
                         }
 
@@ -90,6 +93,7 @@ namespace ExtSort.Services.Sorter
                     }
 
                     var filename = $"{++currentFile}{_UnsortedFileExtension}";
+                 
                     await using var unsortedFile = File.Create(Path.Combine(_settings.IOPath.SortReadPath, filename));
                     unsortedFile.SetLength(runBytesRead + extraBuffer.Count);
                     await unsortedFile.WriteAsync(buffer, 0, runBytesRead, token);
@@ -122,7 +126,7 @@ namespace ExtSort.Services.Sorter
             var total = unsortedFiles.Count;
             var pageStep = _settings.SortPageSize;
 
-            if(pageStepMerge * chunkSize < pageStep)
+            if (pageStepMerge * chunkSize < pageStep)
             {
                 var sqrt = (decimal)Math.Sqrt(pageStep);
                 pageStepMerge = (int)Math.Ceiling(sqrt);
@@ -189,19 +193,22 @@ namespace ExtSort.Services.Sorter
 
             try
             {
-                buffer.SortWith(token, (x, y) => x.Str.CompareTo(y.Str), (x, y) => x.Int.CompareTo(y.Int));
+                buffer.SortWith(token,
+                    (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
+                    (x, y) => x.Int.CompareTo(y.Int));
             }
-            catch(Exception ex) when (ex.InnerException is OperationCanceledException) { throw ex.InnerException; }
+            catch (Exception ex) when (ex.InnerException is OperationCanceledException) { throw ex.InnerException; }
 
             using (var sorted = File.OpenWrite(sortedFilePath))
             {
+
                 sorted.SetLength(targetSize);
                 using (var streamWriter = new StreamWriter(sorted, bufferSize: _settings.SortOutputBufferSize))
                 {
                     var builder = new StringBuilder();
                     var index = 0;
                     (string Str, int Int) row;
-                    while(index < buffer.Length && !token.IsCancellationRequested)
+                    while (index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
                         builder.Append(row.Int).Append('.').Append(row.Str);
@@ -214,8 +221,8 @@ namespace ExtSort.Services.Sorter
                 }
             }
         }
-        
-        private async Task MergeFiles(IReadOnlyList<string> sortedFiles, string targetName, CancellationToken token)
+
+        public async Task MergeFiles(IReadOnlyList<string> sortedFiles, string targetName, CancellationToken token)
         {
             var mergeSourceLocation = _settings.IOPath.MergeStartPath;
             var mergeTargetLocation = _settings.IOPath.MergeStartTargetPath;
@@ -328,19 +335,13 @@ namespace ExtSort.Services.Sorter
             }
         }
 
-        private StreamReader[]  InitKWayMergeFromStreams(
+        private StreamReader[] InitKWayMergeFromStreams(
             IReadOnlyList<string> sortedFiles,
             string readerSourcePath,
-            out PriorityQueue<Entry, (string, int)>  queue)
+            out PriorityQueue<Entry, (string, int)> queue)
         {
             var streamReaders = new StreamReader[sortedFiles.Count];
-            var comparisons = new Comparison<(string Str, int Int)>[]
-            {
-                (x, y) => x.Str.CompareTo(y.Str),
-                (x, y) => x.Int.CompareTo(y.Int)
-            };
-            var comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
-            queue = new PriorityQueue<Entry, (string, int)>(sortedFiles.Count, comparer);
+            queue = BuildQueue(sortedFiles.Count); 
             for (var i = 0; i < sortedFiles.Count; i++)
             {
                 var sortedFilePath = Path.Combine(readerSourcePath, sortedFiles[i]);
@@ -348,7 +349,7 @@ namespace ExtSort.Services.Sorter
                 var buffered = new BufferedStream(sortedFileStream);
                 streamReaders[i] = new StreamReader(buffered);
                 var value = streamReaders[i].ReadLine();
-                if(value.TryParsePriority(out var priority))
+                if (value.TryParsePriority(out var priority))
                 {
                     var row = new Entry() { Row = value, StreamReaderIdx = i };
                     queue.Enqueue(row, priority);
@@ -374,7 +375,7 @@ namespace ExtSort.Services.Sorter
             }
         }
 
-        private IReadOnlyList<string> MoveTmpFilesToSorted(string tmpPath)
+        public IReadOnlyList<string> MoveTmpFilesToSorted(string tmpPath)
         {
             var sortedFilesTmp = Directory.GetFiles(tmpPath, $"*{_SortedFileExtension}{_TempFileExtension}");
             var sortedFiles = new List<string>();
@@ -386,6 +387,17 @@ namespace ExtSort.Services.Sorter
             }
 
             return sortedFiles;
+        }
+
+        internal PriorityQueue<Entry, (string, int)> BuildQueue(int capacity)
+        {
+            var comparisons = new Comparison<(string Str, int Int)>[]
+            {
+                (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
+                (x, y) => x.Int.CompareTo(y.Int)
+            };
+            var comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
+            return new PriorityQueue<Entry, (string, int)>(capacity, comparer);
         }
     }
 }

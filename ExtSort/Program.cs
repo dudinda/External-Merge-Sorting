@@ -10,7 +10,7 @@ using ExtSort.Services.Factories;
 
 var config = new ConfigurationBuilder();
 var path = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-config.SetBasePath(path).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+config.SetBasePath(path).AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
 var rootCommand = new RootCommand("External merge sorting with an input generator");
 var factory = new CommandFactory(config.Build());
