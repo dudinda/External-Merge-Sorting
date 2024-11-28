@@ -24,6 +24,7 @@ namespace ExtSort.Services.Generator
             {
                 writer.BaseStream.SetLength(sizeB);
                 var builder = new StringBuilder();
+                var target = new StringBuilder();
                 var maxNumber = _settings.MaxIntegerNumber + 1;
                 var maxWordLength = _settings.MaxWordLength + 1;
                 var minWordLength = _settings.MinWordLength;
@@ -35,9 +36,11 @@ namespace ExtSort.Services.Generator
                     {
                         builder.Append($" {words[rnd.Next(wordsLength)]}");
                     }
-                    var result = $"{rnd.Next(maxNumber)}.{builder.ToString()}";
-                    writer.WriteLine(result);
+
+                    target.Append(rnd.Next(maxNumber)).Append('.').Append(builder);
+                    writer.WriteLine(target);
                     builder.Clear();
+                    target.Clear();
                 }
 
                 token.ThrowIfCancellationRequested();
