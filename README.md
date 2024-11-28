@@ -2,8 +2,11 @@
 
 1. [Console interface](#console-interface)
 2. [Algorithm](#algorithm)
-   - [Splitting Phase](#splitting)
-   - [Sorting/Merging Phase](#sortingmerging)
+   - [IO Mode](#io-mode)
+      - [Splitting Phase](#splitting)
+      - [Sorting/Merging Phase](#sortingmerging)
+   - [CPU Mode](#cpu-mode)
+      - [Splitting/Sorting Phase](#splitting) 
    - [Merging Phase](#merging)
 3. [Strategy to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
 4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
@@ -18,7 +21,7 @@ The software provides a console interface with two verbs: [g]enerate, [s]ort for
 ```
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/6c2fe6a2-4a60-46f5-b82d-cd45fa2741eb" width="600" height = "400" alt="original underexposed image">
+    <img src="https://github.com/user-attachments/assets/6c2fe6a2-4a60-46f5-b82d-cd45fa2741eb" width="600" height = "400" alt="console interface">
     <p align="center">Fig. 1 - Using the option --help with the interface.</p>
 </p>
 
@@ -29,17 +32,23 @@ To generate a file with the size of 1 GB the following command can be executed:
 
 To start sorting a file with the correct data format the following command can be executed:
 ```powershell
-.\ExtSort.exe sort output.txt output_sorted.txt IOBound
+.\ExtSort.exe sort output.txt output_sorted.txt IO
 ```
-
+```powershell
+.\ExtSort.exe sort output.txt output_sorted.txt CPU
+```
 ***
 
 ## Algorithm
 The provided software contains an implementation of the [External Sort](https://en.wikipedia.org/wiki/External_sorting) algorithm with a possible extension to split I/O operations between 2 drives. 
-### Splitting 
+### IO Mode
+#### Splitting 
 During the splitting phase, a source file is sequentially read and split into blocks of ```FileSplitSizeKb``` size. For every chunk, the name is set as ```<counter>.unsorted```. In the end of each iteration the algorithm analyzes whether the current byte is set at the position of a line's end, and if not, continues to write byte-by-byte until the end of the line is met. After a file is persisted, a map of ```filename::number of lines``` is populated.
-### Sorting/Merging
+#### Sorting/Merging
 For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Multi-Column Comparer](https://github.com/dudinda/External-Merge-Sorting/blob/master/ExtSort/Code/Comparers/MultiColumnComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
+### CPU Mode
+#### Splitting 
+During the splitting phase, a source file is sequentially read and split into blocks of ```FileSplitSizeKb``` size. For every chunk, the name is set as ```<counter>.unsorted```. At the end of each iteration the algorithm analyzes whether the current byte is set at the position of a line's end, and if not, continues to write byte-by-byte until the end of the line is met. After a file is persisted, a map of ```filename::number of lines``` is populated.
 ### Merging
 The common merging strategy is to try to converge files from bottom to top forming a [B-Tree](https://en.wikipedia.org/wiki/B-tree). A possible chain is ```64 -> 16 -> 4 -> 1```. Every ```MergePageSize``` opens ```MergeChunkSize``` streams, then reads the very first element, binds an index to it and continues to process every stream line-by-line sequentially enqueue a row to the priority queue, where the priority is set as a tuple of ```(<number>, <string>)``` using the [K-Way Merge](https://en.wikipedia.org/wiki/K-way_merge_algorithm). The first dequeued item is written to a target file. In case two drives are correctly set in the ```appsettings.json``` it is possible to merge files from one drive to another: ex: ```C:\\->E:\\->C:\\->```.
 
@@ -50,12 +59,10 @@ Specifying the following settings the algorithm will split a file into 64 chunks
 The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the two drives C:\\ and E:\\. 
 
 ```json
-"SorterSetting": {
+"SorterSettings": {
   "FileSplitSizeKb": 16384,
   "SortPageSize": 16,
   "SortOutputBufferSize": 81920,
-  "SortThenMergePageSize": 4,
-  "SortThenMergeChunkSize": 4,
   "MergePageSize": 4,
   "MergeChunkSize": 4,
   "MergeOutputBufferSize": 16777216,
@@ -64,10 +71,16 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
     "SortWritePath": "E:\\Temp\\Files",
     "MergeStartPath": "E:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
-  }
+  },
+},
+"SorterCPUSettings": {
+  "BufferCapacityLines": 720000
+},
+"SorterIOSettings": {
+  "SortThenMergePageSize": 8,
+  "SortThenMergeChunkSize": 8
 }
 ```
-
 ***
 
 ## Strategy to merge a file 10 GB
@@ -80,8 +93,6 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
   "FileSplitSizeKb": 40960,
   "SortPageSize": 64,
   "SortOutputBufferSize": 81920,
-  "SortThenMergePageSize": 8,
-  "SortThenMergeChunkSize": 8,
   "MergePageSize": 8,
   "MergeChunkSize": 4,
   "MergeOutputBufferSize": 16777216,
@@ -90,7 +101,14 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
     "SortWritePath": "C:\\Temp\\Files",
     "MergeStartPath": "C:\\Temp\\Files",
     "MergeStartTargetPath": "C:\\Temp\\Files"
-  }
+  },
+},
+"SorterCPUSettings": {
+  "BufferCapacityLines": 2000000
+},
+"SorterIOSettings": {
+  "SortThenMergePageSize": 8,
+  "SortThenMergeChunkSize": 8
 }
 ```
 
@@ -104,5 +122,4 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
 [Visual Studio Unit Tests](https://www.nuget.org/packages/Microsoft.NET.Test.SDK)
 
 [Microsoft.Extensions.Configuration](https://www.nuget.org/packages/microsoft.extensions.configuration/)
-
 
