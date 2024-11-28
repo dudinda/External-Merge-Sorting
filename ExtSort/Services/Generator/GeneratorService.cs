@@ -17,15 +17,12 @@ namespace ExtSort.Services.Generator
         public async Task Generate(string fileName, long sizeKb, CancellationToken token)
         {
             var sizeB = sizeKb * 1024;
-            using (var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
-            {
-                fileStream.SetLength(sizeB);
-            }
             Console.WriteLine("Generating..");
             var rnd = new Random(Guid.NewGuid().GetHashCode());
             var words = GeneratorData.Data;
             await using (var writer = new StreamWriter(fileName, append: false, Encoding.UTF8, 65536))
             {
+                writer.BaseStream.SetLength(sizeB);
                 var builder = new StringBuilder();
                 var maxNumber = _settings.MaxIntegerNumber + 1;
                 var maxWordLength = _settings.MaxWordLength + 1;
