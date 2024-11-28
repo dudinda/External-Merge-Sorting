@@ -4,9 +4,13 @@
       "commandName": "Project",
       "commandLineArgs": "generate \"output.txt\" 1048576"
     },
-    "SorterDebugProfile": {
+    "SorterCPUDebugProfile": {
       "commandName": "Project",
-      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt CPUBound"
+      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt CPU"
+    },
+    "SorterIODebugProfile": {
+      "commandName": "Project",
+      "commandLineArgs": "sort \"output.txt\" \"output_sorted\".txt IO"
     },
     "HelpProfile": {
       "commandName": "Project",
