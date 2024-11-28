@@ -10,7 +10,8 @@
    - [Merging Phase](#merging)
 3. [Strategy to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
 4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
-5. [Created with](#created-with)
+5. [Strategy to merge a file 100 GB](#strategy-to-merge-a-file-100-gb)
+6. [Created with](#created-with)
 ***
 
 ## Console Interface
@@ -43,7 +44,7 @@ To start sorting a file with the correct data format the following commands can 
 The provided software contains an implementation of the [External Sort](https://en.wikipedia.org/wiki/External_sorting) algorithm with a possible extension to split I/O operations between 2 drives. 
 ### IO Mode
 #### Splitting 
-During the splitting phase, a source file is sequentially read and split into blocks of ```FileSplitSizeKb``` size. For every chunk, the name is set as ```<counter>.unsorted```. In the end of each iteration the algorithm analyzes whether the current byte is set at the position of a line's end, and if not, continues to write byte-by-byte until the end of the line is met. After a file is persisted, a map of ```filename::number of lines``` is populated.
+During the splitting phase, a source file is sequentially read and split into ```NumberOfFiles``` chunks. For every chunk, the name is set as ```<counter>.unsorted```. In the end of each iteration the algorithm analyzes whether the current byte is set at the position of a line's end, and if not, continues to write byte-by-byte until the end of the line is met. After a file is persisted, a map of ```filename::number of lines``` is populated.
 #### Sorting/Merging
 For every page, the program opens the ```SortPageSize``` streams each in  a separate task and starts to populate a buffer with priorities, the size of which was calculated during the Splitting phase. When a buffer is loaded, sorting occurs using the implemented [Multi-Column Comparer](https://github.com/dudinda/External-Merge-Sorting/blob/master/ExtSort/Code/Comparers/MultiColumnComparer.cs) to correspond to the requested template, then a space for a sorted file is allocated and the buffer is written into a file with the ```.sorted``` extension.  Right after a page was sorted a task to merge sorted files is executed. A possible strategy during the phase is to equate ```SortPageSize = SortThenMergePageSize x SortThenMergeChunkSize``` so a page starts merging into ```~sqrt(SortPageSize)``` files when the next page is being sorted.
 ### CPU Mode
@@ -63,7 +64,7 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
   "NumberOfFiles": 64,
   "SortPageSize": 16,
   "SortOutputBufferSize": 2097152,
-  "MergePageSize": 1,
+  "MergePageSize": 4,
   "MergeChunkSize": 16,
   "MergeOutputBufferSize": 16777216,
   "IOPath": {
@@ -85,16 +86,16 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
 
 ## Strategy to merge a file 10 GB
 
-Specifying the following settings the algorithm will split a file into 256 chunks ~41MB each and start processing 8 pages of 32 files.
-The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
+Specifying the following settings the algorithm will split a file into 512 chunks ~20MB each and start processing 32 pages of 16 files.
+The general merging strategy: ```512 -> 64``` (during the Sorting/Merging Phase) ```-> 8 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
 "SorterSetting": {
-  "NumberOfFiles": 256,
-  "SortPageSize": 64,
-  "SortOutputBufferSize": 81920,
+  "NumberOfFiles": 512,
+  "SortPageSize": 16,
+  "SortOutputBufferSize": 2097152,
   "MergePageSize": 8,
-  "MergeChunkSize": 4,
+  "MergeChunkSize": 8,
   "MergeOutputBufferSize": 16777216,
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
@@ -104,10 +105,10 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
   }
 },
 "SorterCPUSettings": {
-  "BufferCapacityLines": 2000000
+  "BufferCapacityLines": 1000000
 },
 "SorterIOSettings": {
-  "SortThenMergePageSize": 8,
+  "SortThenMergePageSize": 2,
   "SortThenMergeChunkSize": 8
 }
 ```
