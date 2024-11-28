@@ -2,7 +2,7 @@
 {
     public enum SortMode
     {
-        IOBound = 1,
-        CPUBound = 2
+        IO = 1,
+        CPU = 2
     }
 }

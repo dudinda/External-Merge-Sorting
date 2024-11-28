@@ -38,7 +38,7 @@ namespace ExtSort.Tests
                 var value = array[i].Dequeue();
                 if (value.TryParsePriority(out var priority))
                 {
-                    var row = new Entry() { Row = value, StreamReaderIdx = i };
+                    var row = new Entry() { Row = value, Index = i };
                     queue.Enqueue(row, priority);
                 }
             }
@@ -46,12 +46,12 @@ namespace ExtSort.Tests
             while (finishedLists.Count != array.Length)
             {
                 var entry = queue.Dequeue();
-                var streamReaderIndex = entry.StreamReaderIdx;
+                var streamReaderIndex = entry.Index;
                 _result.Add(entry.Row);
 
                 if (array[streamReaderIndex].TryDequeue(out var value) && value.TryParsePriority(out var priority))
                 {
-                    var row = new Entry() { Row = value, StreamReaderIdx = streamReaderIndex };
+                    var row = new Entry() { Row = value, Index = streamReaderIndex };
                     queue.Enqueue(row, priority);
                     continue;
                 }

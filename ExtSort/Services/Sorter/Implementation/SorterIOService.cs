@@ -9,7 +9,7 @@ using System.Text;
 
 namespace ExtSort.Services.Sorter.Implementation
 {
-    public class SorterServiceIOBound : ISorterService
+    public class SorterIOService : ISorterService
     {
         internal const string _SortedFileExtension = ".sorted";
         internal const string _TempFileExtension = ".tmp";
@@ -23,7 +23,7 @@ namespace ExtSort.Services.Sorter.Implementation
         private int _mergeTempCounter = 0;
         private Dictionary<string, int> _fileToNumberOfLines = new();
 
-        public SorterServiceIOBound(SorterSetting settings)
+        public SorterIOService(SorterSetting settings)
         {
             _settings = settings;
         }
@@ -311,13 +311,13 @@ namespace ExtSort.Services.Sorter.Implementation
                 while (!token.IsCancellationRequested && finishedStreamReaders.Count != streamReaders.Length)
                 {
                     var entry = priorityQueue.Dequeue();
-                    var streamReaderIndex = entry.StreamReaderIdx;
+                    var streamReaderIndex = entry.Index;
                     outputWriter.WriteLine(entry.Row.AsMemory());
 
                     var value = streamReaders[streamReaderIndex].ReadLine();
                     if (value.TryParsePriority(out var priority))
                     {
-                        var row = new Entry() { Row = value, StreamReaderIdx = streamReaderIndex };
+                        var row = new Entry() { Row = value, Index = streamReaderIndex };
                         priorityQueue.Enqueue(row, priority);
                         continue;
                     }
@@ -342,7 +342,7 @@ namespace ExtSort.Services.Sorter.Implementation
             out PriorityQueue<Entry, (string, int)> queue)
         {
             var streamReaders = new StreamReader[sortedFiles.Count];
-            queue = BuildQueue(sortedFiles.Count); 
+            queue = BuildQueue<Entry>(sortedFiles.Count); 
             for (var i = 0; i < sortedFiles.Count; i++)
             {
                 var sortedFilePath = Path.Combine(readerSourcePath, sortedFiles[i]);
@@ -352,7 +352,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 var value = streamReaders[i].ReadLine();
                 if (value.TryParsePriority(out var priority))
                 {
-                    var row = new Entry() { Row = value, StreamReaderIdx = i };
+                    var row = new Entry() { Row = value, Index = i };
                     queue.Enqueue(row, priority);
                 }
             }
@@ -390,7 +390,7 @@ namespace ExtSort.Services.Sorter.Implementation
             return sortedFiles;
         }
 
-        internal PriorityQueue<Entry, (string, int)> BuildQueue(int capacity)
+        internal PriorityQueue<T, (string, int)> BuildQueue<T>(int capacity)
         {
             var comparisons = new Comparison<(string Str, int Int)>[]
             {
@@ -398,7 +398,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 (x, y) => x.Int.CompareTo(y.Int)
             };
             var comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
-            return new PriorityQueue<Entry, (string, int)>(capacity, comparer);
+            return new PriorityQueue<T, (string, int)>(capacity, comparer);
         }
     }
 }

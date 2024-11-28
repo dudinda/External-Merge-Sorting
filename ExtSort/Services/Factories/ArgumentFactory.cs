@@ -23,7 +23,7 @@ namespace ExtSort.Services.Factories
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(SorterArgument.TargetFileName)
             };
-            yield return new ExtSortArgument<SortMode>("sort_mode", () => SortMode.IOBound, "A mode to sort an output")
+            yield return new ExtSortArgument<SortMode>("sort_mode", () => SortMode.CPU, "A mode to sort an output")
             {
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(SorterArgument.Mode)

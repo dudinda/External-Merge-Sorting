@@ -17,10 +17,10 @@ namespace ExtSort.Services.Factories
         {
             switch(mode)
             {
-                case SortMode.IOBound:
-                    return new SorterServiceIOBound(_settings);
-                case SortMode.CPUBound:
-                    return new SorterServiceCPUBound(_settings);
+                case SortMode.IO:
+                    return new SorterIOService(_settings);
+                case SortMode.CPU:
+                    return new SorterCPUService(_settings);
             }
 
             throw new NotSupportedException(mode.ToString());
