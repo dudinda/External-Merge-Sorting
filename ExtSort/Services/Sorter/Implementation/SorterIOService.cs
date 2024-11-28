@@ -191,8 +191,8 @@ namespace ExtSort.Services.Sorter.Implementation
                     }
                 }
                 targetSize = streamReader.BaseStream.Length;
+                token.ThrowIfCancellationRequested();
             }
-            token.ThrowIfCancellationRequested();
 
             try
             {
@@ -204,7 +204,6 @@ namespace ExtSort.Services.Sorter.Implementation
 
             using (var sorted = File.OpenWrite(sortedFilePath))
             {
-
                 sorted.SetLength(targetSize);
                 using (var streamWriter = new StreamWriter(sorted, bufferSize: _settings.SortOutputBufferSize))
                 {
@@ -219,8 +218,8 @@ namespace ExtSort.Services.Sorter.Implementation
                         builder.Clear();
                         ++index;
                     }
-                    token.ThrowIfCancellationRequested();
                     Array.Clear(buffer, 0, buffer.Length);
+                    token.ThrowIfCancellationRequested();
                 }
             }
         }
