@@ -135,7 +135,7 @@ The general merging strategy: ```4096 -> 512``` (during the Sorting/Merging Phas
   }
 },
 "SorterCPUSettings": {
-  "BufferCapacityLines": 1000000
+  "BufferCapacityLines": 1300000
 },
 "SorterIOSettings": {
   "SortThenMergePageSize": 4,
