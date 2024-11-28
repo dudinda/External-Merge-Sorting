@@ -80,7 +80,7 @@ namespace ExtSort.Services.Factories
                 result.Mode = (SortMode)parser.GetValueForArgument(args[nameof(result.Mode)]);
 
                 var factory = new SortModeFactory(_config);
-                var service = factory.Get(result.Mode);
+                using var service = factory.Get(result.Mode);
                 using var timer = new SimpleTimer("Sorting a file");
                 await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());
             });
