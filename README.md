@@ -60,7 +60,7 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
 
 ```json
 "SorterSettings": {
-  "FileSplitSizeKb": 16384,
+  "NumberOfFiles": 64,
   "SortPageSize": 16,
   "SortOutputBufferSize": 81920,
   "MergePageSize": 4,
@@ -90,7 +90,7 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
 
 ```json
 "SorterSetting": {
-  "FileSplitSizeKb": 40960,
+  "NumberOfFiles": 256,
   "SortPageSize": 64,
   "SortOutputBufferSize": 81920,
   "MergePageSize": 8,
