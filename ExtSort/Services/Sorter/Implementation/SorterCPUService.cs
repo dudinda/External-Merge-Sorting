@@ -30,6 +30,11 @@ namespace ExtSort.Services.Sorter
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)
         {
+            if (string.IsNullOrEmpty(srcFile))
+                throw new InvalidOperationException("The name of a source file cannot be empty");
+            if (string.IsNullOrEmpty(dstFile))
+                throw new InvalidOperationException("The name of a destination file cannot be empty");
+
             Console.WriteLine("--Splitting/Sorting--");
             Console.WriteLine($"Page size: {_settings.SortPageSize}");
             await SplitFile(srcFile, _settings.FileSplitSizeKb, token);
@@ -52,13 +57,14 @@ namespace ExtSort.Services.Sorter
             {
                 using (var reader = new StreamReader(sourceStream))
                 {
-                    var file = 1;
+                    var file = 0;
                     var page = 0;
                     var tasks = new List<Task>();
                     while (!reader.EndOfStream && reader.BaseStream.Position < totalRead && !token.IsCancellationRequested)
                     {
-                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines); 
-                        Console.Write($"\rCurrent file: {file}");
+                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
+                        Console.Write($"\rCurrent file: {++file}");
+
                         string line;
                         while ((line = reader.ReadLine()) != null &&
                                 line.TryParsePriority(out var priority) &&
@@ -68,13 +74,15 @@ namespace ExtSort.Services.Sorter
                             if (reader.BaseStream.Position >= totalRead)
                                 break;
                         }
+
                         if (string.IsNullOrEmpty(line))
                             break;
                         token.ThrowIfCancellationRequested();
                         totalRead = reader.BaseStream.Position + fileSize;
+                        var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
+
                         tasks.Add(Task.Run(() =>
                         {
-                            var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
                             using var writer = new StreamWriter(Path.Combine(_settings.IOPath.SortWritePath, fileName));
                             writer.BaseStream.SetLength(fileSize);
                             string row;
@@ -82,7 +90,7 @@ namespace ExtSort.Services.Sorter
                                 writer.WriteLine(row.AsMemory());
                             token.ThrowIfCancellationRequested();
                         }, token));
-                        ++file;
+
                         if (tasks.Count == _settings.SortPageSize)
                         {
                             ++page;
