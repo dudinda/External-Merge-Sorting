@@ -112,7 +112,36 @@ The general merging strategy: ```512 -> 64``` (during the Sorting/Merging Phase)
   "SortThenMergeChunkSize": 8
 }
 ```
+***
 
+## Strategy to merge a file 100 GB
+
+Specifying the following settings the algorithm will split a file into 512 chunks ~20MB each and start processing 128 pages of 32 files.
+The general merging strategy: ```4096 -> 512``` (during the Sorting/Merging Phase) ```-> 64 -> 8 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
+
+```json
+"SorterSetting": {
+  "NumberOfFiles": 4096,
+  "SortPageSize": 32,
+  "SortOutputBufferSize": 2097152,
+  "MergePageSize": 8,
+  "MergeChunkSize": 8,
+  "MergeOutputBufferSize": 16777216,
+  "IOPath": {
+    "SortReadPath": "C:\\Temp\\Files",
+    "SortWritePath": "C:\\Temp\\Files",
+    "MergeStartPath": "C:\\Temp\\Files",
+    "MergeStartTargetPath": "C:\\Temp\\Files"
+  }
+},
+"SorterCPUSettings": {
+  "BufferCapacityLines": 1000000
+},
+"SorterIOSettings": {
+  "SortThenMergePageSize": 4,
+  "SortThenMergeChunkSize": 8
+}
+```
 ***
 
 ## Created With
