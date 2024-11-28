@@ -116,7 +116,7 @@ The general merging strategy: ```512 -> 64``` (during the Sorting/Merging Phase)
 
 ## Strategy to merge a file 100 GB
 
-Specifying the following settings the algorithm will split a file into 512 chunks ~20MB each and start processing 128 pages of 32 files.
+Specifying the following settings the algorithm will split a file into 512 chunks ~25MB each and start processing 128 pages of 32 files.
 The general merging strategy: ```4096 -> 512``` (during the Sorting/Merging Phase) ```-> 64 -> 8 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
