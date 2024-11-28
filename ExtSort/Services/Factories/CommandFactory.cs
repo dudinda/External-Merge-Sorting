@@ -34,9 +34,7 @@ namespace ExtSort.Services.Factories
             var cmd = new Command(Verbs.GeneratorVerb, VerbDescriptions.GeneratorDesc);
             cmd.AddAlias(Verbs.GeneratorVerb[0..1]);
             foreach (var arg in ArgumentFactory.GeneratorArguments.Value.Values)
-            {
                 cmd.AddArgument(arg);
-            }
 
             cmd.SetHandler(async (ctx) =>
             {
@@ -66,9 +64,7 @@ namespace ExtSort.Services.Factories
             var cmd = new Command(Verbs.SortVerb, VerbDescriptions.SorterDesc);
             cmd.AddAlias(Verbs.SortVerb[0..1]);
             foreach (var arg in ArgumentFactory.SorterArguments.Value.Values)
-            {
                 cmd.AddArgument(arg);
-            }
 
             cmd.SetHandler(async (ctx) =>
             {

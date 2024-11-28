@@ -70,17 +70,13 @@ namespace ExtSort.Services.Sorter.Implementation
                     {
                         var value = sourceStream.ReadByte();
                         if (value == _EOF || value == _NULL)
-                        {
                             break;
-                        }
 
                         var @byte = (byte)value;
                         buffer[runBytesRead] = @byte;
                         ++runBytesRead;
                         if (@byte == _settings.NewLineSeparator)
-                        {
                             ++totalRows;
-                        }
                     }
                     token.ThrowIfCancellationRequested();
 
@@ -90,9 +86,7 @@ namespace ExtSort.Services.Sorter.Implementation
                     {
                         var flag = sourceStream.ReadByte();
                         if (flag == _EOF || flag == _NULL)
-                        {
                             break;
-                        }
                         extraByte = (byte)flag;
                         extraBuffer.Add(extraByte);
                     }
@@ -327,9 +321,7 @@ namespace ExtSort.Services.Sorter.Implementation
                     }
 
                     if (streamReaders[streamReaderIndex].EndOfStream)
-                    {
                         finishedStreamReaders.Add(streamReaderIndex);
-                    }
                 }
 
                 token.ThrowIfCancellationRequested();
