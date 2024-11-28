@@ -10,7 +10,8 @@
    - [Merging Phase](#merging)
 3. [Strategy to merge a file 1 GB](#strategy-to-merge-a-file-1-gb)
 4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
-5. [Created with](#created-with)
+5. [Strategy to merge a file 100 GB](#strategy-to-merge-a-file-100-gb)
+6. [Created with](#created-with)
 ***
 
 ## Console Interface
@@ -63,7 +64,7 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
   "NumberOfFiles": 64,
   "SortPageSize": 16,
   "SortOutputBufferSize": 2097152,
-  "MergePageSize": 1,
+  "MergePageSize": 4,
   "MergeChunkSize": 16,
   "MergeOutputBufferSize": 16777216,
   "IOPath": {
@@ -85,16 +86,16 @@ The general files merging strategy: ```64 -> 16``` (during the Sorting/Merging P
 
 ## Strategy to merge a file 10 GB
 
-Specifying the following settings the algorithm will split a file into 256 chunks ~41MB each and start processing 8 pages of 32 files.
-The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase) ```-> 4 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
+Specifying the following settings the algorithm will split a file into 512 chunks ~20MB each and start processing 32 pages of 16 files.
+The general merging strategy: ```512 -> 64``` (during the Sorting/Merging Phase) ```-> 8 -> 1``` (during the Merging Phase). All operations will be performed within the single drive C:\\.
 
 ```json
 "SorterSetting": {
-  "NumberOfFiles": 256,
-  "SortPageSize": 64,
-  "SortOutputBufferSize": 81920,
+  "NumberOfFiles": 512,
+  "SortPageSize": 16,
+  "SortOutputBufferSize": 2097152,
   "MergePageSize": 8,
-  "MergeChunkSize": 4,
+  "MergeChunkSize": 8,
   "MergeOutputBufferSize": 16777216,
   "IOPath": {
     "SortReadPath": "C:\\Temp\\Files",
@@ -104,10 +105,10 @@ The general merging strategy: ```256 -> 32``` (during the Sorting/Merging Phase)
   }
 },
 "SorterCPUSettings": {
-  "BufferCapacityLines": 2000000
+  "BufferCapacityLines": 1000000
 },
 "SorterIOSettings": {
-  "SortThenMergePageSize": 8,
+  "SortThenMergePageSize": 2,
   "SortThenMergeChunkSize": 8
 }
 ```
