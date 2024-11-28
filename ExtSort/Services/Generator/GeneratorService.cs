@@ -20,16 +20,17 @@ namespace ExtSort.Services.Generator
             Console.WriteLine("Generating..");
             var rnd = new Random(Guid.NewGuid().GetHashCode());
             var words = GeneratorData.Data;
-            await using (var writer = new StreamWriter(fileName, append: false, Encoding.UTF8, 65536))
+            await using (var writer = new StreamWriter(fileName, append: false, new UTF8Encoding(false), _settings.OutputBufferSize))
             {
                 writer.BaseStream.SetLength(sizeB);
                 var builder = new StringBuilder();
                 var maxNumber = _settings.MaxIntegerNumber + 1;
                 var maxWordLength = _settings.MaxWordLength + 1;
+                var minWordLength = _settings.MinWordLength;
                 var wordsLength = words.Length;
                 while(writer.BaseStream.CanWrite && writer.BaseStream.Position <= sizeB && !token.IsCancellationRequested)
                 {
-                    var numberOfWords = rnd.Next(1, maxWordLength);
+                    var numberOfWords = rnd.Next(minWordLength, maxWordLength);
                     while(numberOfWords-- > 0)
                     {
                         builder.Append($" {words[rnd.Next(wordsLength)]}");

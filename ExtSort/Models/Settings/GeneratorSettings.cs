@@ -7,6 +7,7 @@ namespace ExtSort.Models.Settings
         public int MaxIntegerNumber { get; init; } = 15000;
         public int MaxWordLength { get; init; } = 4;
         public int MinWordLength { get; init; } = 1;
+        public int OutputBufferSize { get; init; } = 4194304;
 
         public bool Validate(out StringBuilder errors)
         {
