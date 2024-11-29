@@ -63,7 +63,9 @@ namespace ExtSort.Services.Sorter.Implementation
                 Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
                 while (sourceStream.Length > totalRead && !token.IsCancellationRequested)
                 {
-                    Console.Write($"\rCurrent file: {++currentFile}{_UnsortedFileExtension}");
+                    var filename = $"{++currentFile}{_UnsortedFileExtension}";
+                    Console.Write($"\rCurrent file: {filename}");
+
                     var totalRows = 0;
                     var runBytesRead = 0;
                     while (runBytesRead < fileSize && !token.IsCancellationRequested)
@@ -91,8 +93,6 @@ namespace ExtSort.Services.Sorter.Implementation
                         extraBuffer.Add(extraByte);
                     }
 
-                    var filename = $"{currentFile}{_UnsortedFileExtension}";
-                 
                     await using var unsortedFile = File.Create(Path.Combine(_settings.IOPath.SortReadPath, filename));
                     var targetSize = runBytesRead + extraBuffer.Count;
                     unsortedFile.SetLength(targetSize);
