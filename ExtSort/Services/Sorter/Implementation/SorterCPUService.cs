@@ -2,6 +2,8 @@
 using ExtSort.Models.Settings;
 using ExtSort.Services.Sorter.Implementation;
 
+using System.Text;
+
 namespace ExtSort.Services.Sorter
 {
     public class SorterCPUService : ISorterService
@@ -63,20 +65,19 @@ namespace ExtSort.Services.Sorter
                     {
                         var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
                         Console.Write($"\rCurrent file: {++file}");
-
                         string line;
                         while ((line = reader.ReadLine()) != null &&
                                 line.TryParsePriority(out var priority) &&
                                 !token.IsCancellationRequested)
                         {
-                            queue.Enqueue(line, priority);
+                            queue.Enqueue(null, priority);
                             if (sourceStream.Position >= totalRead)
                                 break;
                         }
                         token.ThrowIfCancellationRequested();
                         totalRead = sourceStream.Position + fileSize;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
-
+                        
                         tasks.Add(Task.Run(() =>
                         {
                             using (var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
@@ -84,9 +85,13 @@ namespace ExtSort.Services.Sorter
                                 stream.SetLength(fileSize);
                                 using (var writer = new StreamWriter(stream, bufferSize: _settings.SortOutputBufferSize))
                                 {
-                                    string row;
-                                    while (queue.TryDequeue(out row, out _) && !token.IsCancellationRequested)
-                                        writer.WriteLine(row.AsMemory());
+                                    var builder = new StringBuilder(); (string Str, int Int) row;
+                                    while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested)
+                                    {
+                                        writer.WriteLine(builder.Append(row.Int).Append('.').Append(row.Str));
+                                        builder.Clear();
+                                    }
+
                                     token.ThrowIfCancellationRequested();
                                 }
                             }
@@ -94,12 +99,14 @@ namespace ExtSort.Services.Sorter
 
                         if (tasks.Count == _settings.SortPageSize)
                         {
-                            ++page;
-                            Console.WriteLine($"{Environment.NewLine}Waiting the {page} page to be sorted");
+                            Console.WriteLine($"{Environment.NewLine}Waiting the {++page} page to be sorted");
                             await Task.WhenAll(tasks);
                             tasks.Clear();
                         }
                     }
+                    if (tasks.Any())
+                        await Task.WhenAll(tasks);
+                    tasks.Clear();
                 }
                 token.ThrowIfCancellationRequested();
             }
