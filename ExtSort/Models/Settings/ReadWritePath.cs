@@ -5,7 +5,7 @@ namespace ExtSort.Models.Settings
 {
     public class ReadWritePath
     {
-        public string SplitReadPath { get; init; } = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        public string SplitReadPath { get; init; } = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
         public string SortReadPath { get; init; }
         public string SortWritePath { get; init; }
         public string MergeStartPath { get; init; }
