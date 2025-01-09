@@ -25,6 +25,11 @@ namespace ExtSort.Models.Settings
             if (string.IsNullOrEmpty(MergeStartTargetPath))
                 errors.AppendLine("The target path to merge files is not specified.");
 
+            Directory.CreateDirectory(SortReadPath);
+            Directory.CreateDirectory(SortWritePath);
+            Directory.CreateDirectory(MergeStartPath);
+            Directory.CreateDirectory(MergeStartTargetPath);
+
             return errors.Length == 0;
         }
     }
