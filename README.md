@@ -152,3 +152,27 @@ The general merging strategy: ```4096 -> 512``` (during the Sorting/Merging Phas
 [Visual Studio Unit Tests](https://www.nuget.org/packages/Microsoft.NET.Test.SDK)
 
 [Microsoft.Extensions.Configuration](https://www.nuget.org/packages/microsoft.extensions.configuration/)
+
+## How to run the program
+
+The result of executing the `dotnet build` command is a whole bunch of files that are tedious to
+administer. Therefore, it is convenient to work with a compact view of the program, which can be
+obtained by executing the `dotnet publish` command.
+
+1. In project folder `ExtSort` execute command:
+
+```powershell
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=false,PublishTrimmed=true,PublishSingleFile=true
+```
+
+2. Find needed files in subfolder:
+
+`ExtSort\bin\Release\net6.0\win-x64\publish\`  
+3. Run with the command as in the example:
+
+```powershell
+$Time = [System.Diagnostics.Stopwatch]::StartNew()
+& ".\ExtSort.exe" "sort" "input.txt" "output.txt" "IO"
+write-host ('Completed in {0} seconds.' -f $Time.Elapsed.TotalSeconds)
+$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+```
