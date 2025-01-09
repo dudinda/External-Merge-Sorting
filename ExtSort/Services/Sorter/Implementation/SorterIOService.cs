@@ -259,8 +259,7 @@ namespace ExtSort.Services.Sorter.Implementation
 
             token.ThrowIfCancellationRequested();
             var resultPath = Path.Combine(mergeSourceLocation, sortedFiles[0]);
-            var outputPath = Path.Combine(mergeSourceLocation, targetName);
-            File.Move(resultPath, outputPath, true);
+            File.Move(resultPath, targetName, true);
         }
 
         private async Task KWayMerge(IEnumerable<string[]> sortedChunks,
