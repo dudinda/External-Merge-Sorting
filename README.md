@@ -1,3 +1,4 @@
+ The software solves a task defined in the Task.pdf, which was originally issued as a test assignment.
  # External Merge Sorting
 
 1. [Console interface](#console-interface)
@@ -167,7 +168,8 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=
 
 2. Find needed files in subfolder:
 
-`ExtSort\bin\Release\net6.0\win-x64\publish\`  
+`ExtSort\bin\Release\net6.0\win-x64\publish\`
+
 3. Run with the command as in the example:
 
 ```powershell
