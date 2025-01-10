@@ -42,8 +42,10 @@ namespace ExtSort.Services.Sorter.Implementation
             await Task.WhenAll(mergeTasks);
 
             Console.WriteLine($"{Environment.NewLine}--Merging--");
-            var sortedFiles = MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
-            await MergeFiles(sortedFiles, dstFile, token);
+            var sortedFiles = MoveTmpFilesToSorted(_settings.IOPath.MergeStartPath);
+            var source = _settings.IOPath.MergeStartPath;
+            var target = _settings.IOPath.MergeStartTargetPath;
+            await MergeFiles(sortedFiles, dstFile, source, target, token);
         }
 
         private async Task<IReadOnlyCollection<string>> SplitFile(
@@ -117,7 +119,7 @@ namespace ExtSort.Services.Sorter.Implementation
         {
             var mergeTasks = new List<Task>();
             var mergeSourceLocation = _settings.IOPath.SortWritePath;
-            var mergeTargetLocation = _settings.IOPath.MergeStartTargetPath;
+            var mergeTargetLocation = _settings.IOPath.MergeStartPath;
             var pageStepMerge = _settings.SortThenMergePageSize;
             var chunkSize = _settings.SortThenMergeChunkSize;
 
@@ -221,10 +223,13 @@ namespace ExtSort.Services.Sorter.Implementation
             }
         }
 
-        public async Task MergeFiles(IReadOnlyList<string> sortedFiles, string targetName, CancellationToken token)
+        public async Task MergeFiles(
+            IReadOnlyList<string> sortedFiles,
+            string targetName,
+            string mergeSourceLocation,
+            string mergeTargetLocation,
+            CancellationToken token)
         {
-            var mergeSourceLocation = _settings.IOPath.MergeStartPath;
-            var mergeTargetLocation = _settings.IOPath.MergeStartTargetPath;
             var iteration = 1;
             while (sortedFiles.Count > 1 && !token.IsCancellationRequested)
             {
@@ -330,7 +335,8 @@ namespace ExtSort.Services.Sorter.Implementation
                 for (var i = 0; i < streamReaders.Length; i++)
                 {
                     streamReaders[i].Dispose();
-                    Clean(filesToMerge[i], readerSourcePath);
+                    var filePath = Path.Combine(readerSourcePath, filesToMerge[i]);
+                    Clean(filePath, readerSourcePath);
                 }
             }
         }
@@ -359,11 +365,10 @@ namespace ExtSort.Services.Sorter.Implementation
             return streamReaders;
         }
 
-        private void Clean(string fileName, string cleanLocation)
+        private void Clean(string filePath, string cleanLocation)
         {
-            var temporaryFilename = $"{fileName}.removal";
+            var temporaryFilename = $"{new FileInfo(filePath).Name}.removal";
             var tmpPath = Path.Combine(cleanLocation, temporaryFilename);
-            var filePath = Path.Combine(cleanLocation, fileName);
             File.Move(filePath, tmpPath, true);
             File.Delete(tmpPath);
         }
@@ -376,7 +381,7 @@ namespace ExtSort.Services.Sorter.Implementation
             {
                 var sorted = file.Replace(_TempFileExtension, string.Empty);
                 File.Move(file, sorted, true);
-                sortedFiles.Add(sorted);
+                sortedFiles.Add(Path.GetFileName(sorted));
             }
 
             return sortedFiles;
@@ -395,7 +400,7 @@ namespace ExtSort.Services.Sorter.Implementation
 
         public void Dispose()
         {
-            var files = Directory.GetFiles(_settings.IOPath.MergeStartTargetPath, "*.*", SearchOption.AllDirectories)
+            var files = Directory.GetFiles(_settings.IOPath.SortWritePath, "*.*", SearchOption.AllDirectories)
             .Where(s => 
                 s.EndsWith(_TempFileExtension)   || 
                 s.EndsWith(_SortedFileExtension) ||

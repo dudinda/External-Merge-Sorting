@@ -42,8 +42,10 @@ namespace ExtSort.Services.Sorter
             await SplitFile(srcFile, _settings.NumberOfFiles, token);
 
             Console.WriteLine($"{Environment.NewLine}--Merging--");
-            var sortedFiles = _io.MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
-            await _io.MergeFiles(sortedFiles, dstFile, token);
+            var sortedFiles = _io.MoveTmpFilesToSorted(_settings.IOPath.SortWritePath);
+            var source = _settings.IOPath.SortWritePath;
+            var target = _settings.IOPath.MergeStartTargetPath;
+            await _io.MergeFiles(sortedFiles, dstFile, source, target, token);
         }
 
         private async Task SplitFile(string srcFile, long numberOfFiles, CancellationToken token)
