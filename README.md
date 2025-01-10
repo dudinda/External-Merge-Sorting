@@ -1,4 +1,4 @@
- The software solves a task defined in the Task.pdf, which was originally issued as a test assignment.
+ The software solves a task defined in the [Task.pdf](https://github.com/dudinda/External-Merge-Sorting/blob/master/Task.pdf), which was originally issued as a test assignment.
  # External Merge Sorting
 
 1. [Console interface](#console-interface)
