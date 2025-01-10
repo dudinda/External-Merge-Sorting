@@ -4,6 +4,7 @@ using ExtSort.Models.Settings;
 using ExtSort.Models.Sorter;
 
 using System.Collections.Concurrent;
+using System.Numerics;
 using System.Text;
 
 namespace ExtSort.Services.Sorter.Implementation
@@ -42,8 +43,10 @@ namespace ExtSort.Services.Sorter.Implementation
             await Task.WhenAll(mergeTasks);
 
             Console.WriteLine($"{Environment.NewLine}--Merging--");
-            var sortedFiles = MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
-            await MergeFiles(sortedFiles, dstFile, token);
+            var sortedFiles = MoveTmpFilesToSorted(_settings.IOPath.MergeStartPath);
+            var source = _settings.IOPath.MergeStartPath;
+            var target = _settings.IOPath.MergeStartTargetPath;
+            await MergeFiles(sortedFiles, dstFile, source, target, token);
         }
 
         private async Task<IReadOnlyCollection<string>> SplitFile(
@@ -117,7 +120,7 @@ namespace ExtSort.Services.Sorter.Implementation
         {
             var mergeTasks = new List<Task>();
             var mergeSourceLocation = _settings.IOPath.SortWritePath;
-            var mergeTargetLocation = _settings.IOPath.MergeStartTargetPath;
+            var mergeTargetLocation = _settings.IOPath.MergeStartPath;
             var pageStepMerge = _settings.SortThenMergePageSize;
             var chunkSize = _settings.SortThenMergeChunkSize;
 
@@ -137,11 +140,11 @@ namespace ExtSort.Services.Sorter.Implementation
             var start = 0;
             do
             {
-                var iterator = unsortedFiles.Skip(start).Take(pageStep);
+                var iterator = unsortedFiles.Skip(start).Take(pageStep).ToArray();
                 if (iterator.Any())
                 {
                     Console.WriteLine($"Page: {page + 1}");
-                    var digits = iterator.Select(file => Path.GetFileNameWithoutExtension(file));
+                    var digits = iterator.Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
                     Console.WriteLine($"Sorting: [{string.Join(", ", digits)}]{_UnsortedFileExtension}");
                     foreach (var file in iterator)
                     {
@@ -157,7 +160,7 @@ namespace ExtSort.Services.Sorter.Implementation
                     }
                     await Task.WhenAll(sortedTasks);
 
-                    var sortedPage = sorted.ToList().Chunk(chunkSize).Skip(0).Take(pageStepMerge);
+                    var sortedPage = sorted.ToList().Chunk(chunkSize).Skip(0).Take(pageStepMerge).ToArray();
                     var mergeTask = KWayMerge(sortedPage, mergeTargetLocation, mergeSourceLocation, token);
                     mergeTasks.Add(mergeTask);
 
@@ -172,7 +175,7 @@ namespace ExtSort.Services.Sorter.Implementation
         private void SortFile(string unsortedFilePath, string sortedFilePath, int numberOfLines, CancellationToken token)
         {
             long targetSize = 0;
-            var buffer = new (string Str, int Int)[numberOfLines];
+            var buffer = new (string Str, BigInteger Int)[numberOfLines];
             using (var unsorted = File.OpenRead(unsortedFilePath))
             {
                 using var buffered = new BufferedStream(unsorted);
@@ -206,7 +209,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 {
                     var builder = new StringBuilder();
                     var index = 0;
-                    (string Str, int Int) row;
+                    (string Str, BigInteger Int) row;
                     while (index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
@@ -221,10 +224,13 @@ namespace ExtSort.Services.Sorter.Implementation
             }
         }
 
-        public async Task MergeFiles(IReadOnlyList<string> sortedFiles, string targetName, CancellationToken token)
+        public async Task MergeFiles(
+            IReadOnlyList<string> sortedFiles,
+            string targetName,
+            string mergeSourceLocation,
+            string mergeTargetLocation,
+            CancellationToken token)
         {
-            var mergeSourceLocation = _settings.IOPath.MergeStartPath;
-            var mergeTargetLocation = _settings.IOPath.MergeStartTargetPath;
             var iteration = 1;
             while (sortedFiles.Count > 1 && !token.IsCancellationRequested)
             {
@@ -240,7 +246,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 _mergeTempCounter = 0;
                 do
                 {
-                    var sortedPage = sortedFiles.Chunk(chunkSize).Skip(step).Take(pageStep);
+                    var sortedPage = sortedFiles.Chunk(chunkSize).Skip(step).Take(pageStep).ToArray();
                     if (!sortedPage.Any()) break;
                     Console.WriteLine($"Page: {page + 1}");
                     await KWayMerge(sortedPage, mergeTargetLocation, mergeSourceLocation, token);
@@ -259,8 +265,7 @@ namespace ExtSort.Services.Sorter.Implementation
 
             token.ThrowIfCancellationRequested();
             var resultPath = Path.Combine(mergeSourceLocation, sortedFiles[0]);
-            var outputPath = Path.Combine(mergeSourceLocation, targetName);
-            File.Move(resultPath, outputPath, true);
+            File.Move(resultPath, targetName, true);
         }
 
         private async Task KWayMerge(IEnumerable<string[]> sortedChunks,
@@ -272,7 +277,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 var counter = Interlocked.Increment(ref _mergeTempCounter);
                 var outputFilename = $"{counter}{_SortedFileExtension}{_TempFileExtension}";
                 var targetPath = Path.Combine(mergeTargetLocation, outputFilename);
-                var digits = chunk.Select(file => Path.GetFileNameWithoutExtension(file));
+                var digits = chunk.Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
                 Console.WriteLine($"Merging [{string.Join(", ", digits)}]{_SortedFileExtension} into: {outputFilename}");
 
                 if (chunk.Length > 1)
@@ -331,7 +336,8 @@ namespace ExtSort.Services.Sorter.Implementation
                 for (var i = 0; i < streamReaders.Length; i++)
                 {
                     streamReaders[i].Dispose();
-                    Clean(filesToMerge[i], readerSourcePath);
+                    var filePath = Path.Combine(readerSourcePath, filesToMerge[i]);
+                    Clean(filePath, readerSourcePath);
                 }
             }
         }
@@ -339,7 +345,7 @@ namespace ExtSort.Services.Sorter.Implementation
         private StreamReader[] InitKWayMergeFromStreams(
             IReadOnlyList<string> sortedFiles,
             string readerSourcePath,
-            out PriorityQueue<Entry, (string, int)> queue)
+            out PriorityQueue<Entry, (string, BigInteger)> queue)
         {
             var streamReaders = new StreamReader[sortedFiles.Count];
             queue = BuildQueue<Entry>(sortedFiles.Count); 
@@ -360,11 +366,10 @@ namespace ExtSort.Services.Sorter.Implementation
             return streamReaders;
         }
 
-        private void Clean(string fileName, string cleanLocation)
+        private void Clean(string filePath, string cleanLocation)
         {
-            var temporaryFilename = $"{fileName}.removal";
+            var temporaryFilename = $"{new FileInfo(filePath).Name}.removal";
             var tmpPath = Path.Combine(cleanLocation, temporaryFilename);
-            var filePath = Path.Combine(cleanLocation, fileName);
             File.Move(filePath, tmpPath, true);
             File.Delete(tmpPath);
         }
@@ -377,26 +382,26 @@ namespace ExtSort.Services.Sorter.Implementation
             {
                 var sorted = file.Replace(_TempFileExtension, string.Empty);
                 File.Move(file, sorted, true);
-                sortedFiles.Add(sorted);
+                sortedFiles.Add(Path.GetFileName(sorted));
             }
 
             return sortedFiles;
         }
 
-        internal PriorityQueue<T, (string, int)> BuildQueue<T>(int capacity)
+        internal PriorityQueue<T, (string, BigInteger)> BuildQueue<T>(int capacity)
         {
-            var comparisons = new Comparison<(string Str, int Int)>[]
+            var comparisons = new Comparison<(string Str, BigInteger Int)>[]
             {
                 (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            var comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
-            return new PriorityQueue<T, (string, int)>(capacity, comparer);
+            var comparer = new MultiColumnComparer<(string Str, BigInteger Int)>(comparisons);
+            return new PriorityQueue<T, (string, BigInteger)>(capacity, comparer);
         }
 
         public void Dispose()
         {
-            var files = Directory.GetFiles(_settings.IOPath.MergeStartTargetPath, "*.*", SearchOption.AllDirectories)
+            var files = Directory.GetFiles(_settings.IOPath.SortWritePath, "*.*", SearchOption.AllDirectories)
             .Where(s => 
                 s.EndsWith(_TempFileExtension)   || 
                 s.EndsWith(_SortedFileExtension) ||

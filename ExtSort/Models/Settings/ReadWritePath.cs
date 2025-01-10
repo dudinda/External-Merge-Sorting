@@ -5,7 +5,7 @@ namespace ExtSort.Models.Settings
 {
     public class ReadWritePath
     {
-        public string SplitReadPath { get; init; } = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        public string SplitReadPath { get; init; } = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
         public string SortReadPath { get; init; }
         public string SortWritePath { get; init; }
         public string MergeStartPath { get; init; }
@@ -24,6 +24,11 @@ namespace ExtSort.Models.Settings
                 errors.AppendLine("The target path to select sorted files for merge is not specified.");
             if (string.IsNullOrEmpty(MergeStartTargetPath))
                 errors.AppendLine("The target path to merge files is not specified.");
+
+            Directory.CreateDirectory(SortReadPath);
+            Directory.CreateDirectory(SortWritePath);
+            Directory.CreateDirectory(MergeStartPath);
+            Directory.CreateDirectory(MergeStartTargetPath);
 
             return errors.Length == 0;
         }

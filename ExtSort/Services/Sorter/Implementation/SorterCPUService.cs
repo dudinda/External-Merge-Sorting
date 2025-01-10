@@ -1,7 +1,8 @@
 ﻿using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
 using ExtSort.Services.Sorter.Implementation;
-
+using System.Diagnostics;
+using System.Numerics;
 using System.Text;
 
 namespace ExtSort.Services.Sorter
@@ -42,8 +43,10 @@ namespace ExtSort.Services.Sorter
             await SplitFile(srcFile, _settings.NumberOfFiles, token);
 
             Console.WriteLine($"{Environment.NewLine}--Merging--");
-            var sortedFiles = _io.MoveTmpFilesToSorted(_settings.IOPath.MergeStartTargetPath);
-            await _io.MergeFiles(sortedFiles, dstFile, token);
+            var sortedFiles = _io.MoveTmpFilesToSorted(_settings.IOPath.SortWritePath);
+            var source = _settings.IOPath.SortWritePath;
+            var target = _settings.IOPath.MergeStartTargetPath;
+            await _io.MergeFiles(sortedFiles, dstFile, source, target, token);
         }
 
         private async Task SplitFile(string srcFile, long numberOfFiles, CancellationToken token)
@@ -55,37 +58,83 @@ namespace ExtSort.Services.Sorter
             {
                 using (var reader = new StreamReader(sourceStream))
                 {
-                    var fileSize = sourceStream.Length / numberOfFiles;
+                    var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
                     var totalRead = 0l;
                     var file = 0;
                     var page = 0;
+                    var lineNumber = 0L;
                     var tasks = new List<Task>();
+                    const int messageFrequencySeconds = 5;
+                    var fileMessageTimer = Stopwatch.StartNew();
+                    var pageMessageTimer = Stopwatch.StartNew();
+                    const string rowBokenFormatMessage = "Line number {0} contains content with a broken format: \"{1}\"";
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
-                    while (!reader.EndOfStream && sourceStream.Length > totalRead && !token.IsCancellationRequested)
+                    while (!reader.EndOfStream && !token.IsCancellationRequested)
                     {
                         var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
-                        Console.Write($"\rCurrent file: {++file}");
-                        string line;
-                        while ((line = reader.ReadLine()) != null &&
-                                line.TryParsePriority(out var priority) &&
-                                !token.IsCancellationRequested)
+                        ++file;
+
+                        if (fileMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
                         {
-                            queue.Enqueue(null, priority);
-                            if (sourceStream.Position >= totalRead)
-                                break;
+                            fileMessageTimer.Restart();
+                            const string fileMessage = "Current file: {0}";
+                            Console.WriteLine(string.Format(fileMessage, file));
                         }
+
+                        while (!token.IsCancellationRequested)
+                        {
+                            ++lineNumber;
+
+                            if (sourceStream.Position - totalRead > fileSize)
+                                break;
+
+                            var line = reader.ReadLine();
+
+                            if (string.IsNullOrEmpty(line) && reader.EndOfStream)
+                                break;
+
+                            var success = line.TryParsePriority(out var priority);
+
+                            if (!success)
+                                throw new Exception(string.Format(rowBokenFormatMessage, lineNumber, line.Eclipse(100)));
+
+                            queue.Enqueue(null, priority);
+                        }
+
+                        // StreamReader undelying stream reads form input file by pages
+                        // so we need to finish read input file ending with code like below
+                        // because target file size becomes zero for small input files
+                        while (!token.IsCancellationRequested)
+                        {
+                            ++lineNumber;
+
+                            if (reader.EndOfStream || sourceStream.Position != sourceStream.Length)
+                                break;
+
+                            var line = reader.ReadLine();
+
+                            if (string.IsNullOrEmpty(line) && reader.EndOfStream)
+                                break;
+
+                            var success = line.TryParsePriority(out var priority);
+
+                            if (!success)
+                                throw new Exception(string.Format(rowBokenFormatMessage, lineNumber, line.Eclipse(100)));
+
+                            queue.Enqueue(null, priority);
+                        }
+
                         token.ThrowIfCancellationRequested();
-                        totalRead = sourceStream.Position + fileSize;
+                        totalRead = sourceStream.Position;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
-                        
+
                         tasks.Add(Task.Run(() =>
                         {
                             using (var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
                             {
-                                stream.SetLength(fileSize);
                                 using (var writer = new StreamWriter(stream, bufferSize: _settings.SortOutputBufferSize))
                                 {
-                                    var builder = new StringBuilder(); (string Str, int Int) row;
+                                    var builder = new StringBuilder(); (string Str, BigInteger Int) row;
                                     while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested)
                                     {
                                         writer.WriteLine(builder.Append(row.Int).Append('.').Append(row.Str));
@@ -99,7 +148,15 @@ namespace ExtSort.Services.Sorter
 
                         if (tasks.Count == _settings.SortPageSize)
                         {
-                            Console.WriteLine($"{Environment.NewLine}Waiting the {++page} page to be sorted");
+                            ++page;
+
+                            if (pageMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
+                            {
+                                pageMessageTimer.Restart();
+                                const string pageMessage = "Waiting the {0} page to be sorted";
+                                Console.WriteLine(string.Format(pageMessage, page));
+                            }
+
                             await Task.WhenAll(tasks);
                             tasks.Clear();
                         }
