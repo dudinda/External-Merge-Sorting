@@ -1,11 +1,12 @@
 ﻿using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
+using ExtSort.Models.Timer;
 using ExtSort.Services.Sorter.Implementation;
-using System.Diagnostics;
+
 using System.Numerics;
 using System.Text;
 
-namespace ExtSort.Services.Sorter
+namespace ExtSort.Services.Sorter 
 {
     public class SorterCPUService : ISorterService
     {
@@ -64,22 +65,16 @@ namespace ExtSort.Services.Sorter
                     var page = 0;
                     var lineNumber = 0L;
                     var tasks = new List<Task>();
-                    const int messageFrequencySeconds = 5;
-                    var fileMessageTimer = Stopwatch.StartNew();
-                    var pageMessageTimer = Stopwatch.StartNew();
+                    using var msgScope = new IntervalScope(5);
+
                     const string rowBokenFormatMessage = "Line number {0} contains content with a broken format: \"{1}\"";
+                    const string fileMessage = "Current file: {0}";
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
                     while (!reader.EndOfStream && !token.IsCancellationRequested)
                     {
                         var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
                         ++file;
-
-                        if (fileMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
-                        {
-                            fileMessageTimer.Restart();
-                            const string fileMessage = "Current file: {0}";
-                            Console.WriteLine(string.Format(fileMessage, file));
-                        }
+                        msgScope.WriteLine(string.Format(fileMessage, file));
 
                         while (!token.IsCancellationRequested)
                         {
@@ -94,7 +89,6 @@ namespace ExtSort.Services.Sorter
                                 break;
 
                             var success = line.TryParsePriority(out var priority);
-
                             if (!success)
                                 throw new Exception(string.Format(rowBokenFormatMessage, lineNumber, line.Eclipse(100)));
 
@@ -117,7 +111,6 @@ namespace ExtSort.Services.Sorter
                                 break;
 
                             var success = line.TryParsePriority(out var priority);
-
                             if (!success)
                                 throw new Exception(string.Format(rowBokenFormatMessage, lineNumber, line.Eclipse(100)));
 
@@ -149,14 +142,9 @@ namespace ExtSort.Services.Sorter
                         if (tasks.Count == _settings.SortPageSize)
                         {
                             ++page;
-
-                            if (pageMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
-                            {
-                                pageMessageTimer.Restart();
-                                const string pageMessage = "Waiting the {0} page to be sorted";
-                                Console.WriteLine(string.Format(pageMessage, page));
-                            }
-
+                            const string pageMessage = "Waiting the {0} page to be sorted";
+                            msgScope.WriteLine(string.Format(pageMessage, page));
+    
                             await Task.WhenAll(tasks);
                             tasks.Clear();
                         }
