@@ -1,6 +1,6 @@
 using ExtSort.Code.Comparers;
 using ExtSort.Code.Extensions;
-
+using System.Numerics;
 using System.Text;
 
 namespace ExtSort.Tests
@@ -8,19 +8,19 @@ namespace ExtSort.Tests
     [TestClass]
     public class SortOrderTests
     {
-        private MultiColumnComparer<(string Str, int Int)> _comparer;
+        private MultiColumnComparer<(string Str, BigInteger Int)> _comparer;
         private string[] _data;
         private string[] _correctData;
 
         [TestInitialize]
         public void Setup()
         {
-            var comparisons = new Comparison<(string Str, int Int)>[]
+            var comparisons = new Comparison<(string Str, BigInteger Int)>[]
             {
                 (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            _comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
+            _comparer = new MultiColumnComparer<(string Str, BigInteger Int)>(comparisons);
             _data =
             [
                 "415. Apple",
@@ -42,7 +42,7 @@ namespace ExtSort.Tests
         [TestMethod]
         public void VerifyCorrectOrderWithTaskTestComparatorSort()
         {
-            var buffer = new (string Str, int Int)[_data.Length];
+            var buffer = new (string Str, BigInteger Int)[_data.Length];
             for(var i = 0; i < _data.Length; ++i)
             {
                 if (_data[i].TryParsePriority(out var priority))

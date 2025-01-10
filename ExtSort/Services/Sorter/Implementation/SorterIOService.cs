@@ -4,6 +4,7 @@ using ExtSort.Models.Settings;
 using ExtSort.Models.Sorter;
 
 using System.Collections.Concurrent;
+using System.Numerics;
 using System.Text;
 
 namespace ExtSort.Services.Sorter.Implementation
@@ -174,7 +175,7 @@ namespace ExtSort.Services.Sorter.Implementation
         private void SortFile(string unsortedFilePath, string sortedFilePath, int numberOfLines, CancellationToken token)
         {
             long targetSize = 0;
-            var buffer = new (string Str, int Int)[numberOfLines];
+            var buffer = new (string Str, BigInteger Int)[numberOfLines];
             using (var unsorted = File.OpenRead(unsortedFilePath))
             {
                 using var buffered = new BufferedStream(unsorted);
@@ -208,7 +209,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 {
                     var builder = new StringBuilder();
                     var index = 0;
-                    (string Str, int Int) row;
+                    (string Str, BigInteger Int) row;
                     while (index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
@@ -344,7 +345,7 @@ namespace ExtSort.Services.Sorter.Implementation
         private StreamReader[] InitKWayMergeFromStreams(
             IReadOnlyList<string> sortedFiles,
             string readerSourcePath,
-            out PriorityQueue<Entry, (string, int)> queue)
+            out PriorityQueue<Entry, (string, BigInteger)> queue)
         {
             var streamReaders = new StreamReader[sortedFiles.Count];
             queue = BuildQueue<Entry>(sortedFiles.Count); 
@@ -387,15 +388,15 @@ namespace ExtSort.Services.Sorter.Implementation
             return sortedFiles;
         }
 
-        internal PriorityQueue<T, (string, int)> BuildQueue<T>(int capacity)
+        internal PriorityQueue<T, (string, BigInteger)> BuildQueue<T>(int capacity)
         {
-            var comparisons = new Comparison<(string Str, int Int)>[]
+            var comparisons = new Comparison<(string Str, BigInteger Int)>[]
             {
                 (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            var comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
-            return new PriorityQueue<T, (string, int)>(capacity, comparer);
+            var comparer = new MultiColumnComparer<(string Str, BigInteger Int)>(comparisons);
+            return new PriorityQueue<T, (string, BigInteger)>(capacity, comparer);
         }
 
         public void Dispose()

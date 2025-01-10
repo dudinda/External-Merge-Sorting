@@ -1,13 +1,14 @@
 ﻿using ExtSort.Code.Comparers;
 using ExtSort.Code.Extensions;
 using ExtSort.Models.Sorter;
+using System.Numerics;
 
 namespace ExtSort.Tests
 {
     [TestClass]
     public class KMergeOrderTests
     {
-        private MultiColumnComparer<(string Str, int Int)> _comparer;
+        private MultiColumnComparer<(string Str, BigInteger Int)> _comparer;
         private Queue<string> _1stList;
         private Queue<string> _2ndList;
         private Queue<string> _3rdList;
@@ -16,12 +17,12 @@ namespace ExtSort.Tests
         [TestInitialize]
         public void Setup()
         {
-            var comparisons = new Comparison<(string Str, int Int)>[]
+            var comparisons = new Comparison<(string Str, BigInteger Int)>[]
             {
                 (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            _comparer = new MultiColumnComparer<(string Str, int Int)>(comparisons);
+            _comparer = new MultiColumnComparer<(string Str, BigInteger Int)>(comparisons);
             _1stList = new Queue<string>(Get1stOrderedList());
             _2ndList = new Queue<string>(Get2ndOrderedList());
             _3rdList = new Queue<string>(Get3rdOrderedList());
@@ -32,7 +33,7 @@ namespace ExtSort.Tests
         public void VerifyCorrectOrderWithTaskTestComparatorMerge()
         {
             var array = new Queue<string>[] { _1stList, _2ndList, _3rdList };
-            var queue = new PriorityQueue<Entry, (string, int)>(array.Length, _comparer);
+            var queue = new PriorityQueue<Entry, (string, BigInteger)>(array.Length, _comparer);
             for (var i = 0; i < array.Length; ++i)
             {
                 var value = array[i].Dequeue();

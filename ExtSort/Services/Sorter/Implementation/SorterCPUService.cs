@@ -2,6 +2,7 @@
 using ExtSort.Models.Settings;
 using ExtSort.Services.Sorter.Implementation;
 using System.Diagnostics;
+using System.Numerics;
 using System.Text;
 
 namespace ExtSort.Services.Sorter
@@ -133,7 +134,7 @@ namespace ExtSort.Services.Sorter
                             {
                                 using (var writer = new StreamWriter(stream, bufferSize: _settings.SortOutputBufferSize))
                                 {
-                                    var builder = new StringBuilder(); (string Str, int Int) row;
+                                    var builder = new StringBuilder(); (string Str, BigInteger Int) row;
                                     while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested)
                                     {
                                         writer.WriteLine(builder.Append(row.Int).Append('.').Append(row.Str));
