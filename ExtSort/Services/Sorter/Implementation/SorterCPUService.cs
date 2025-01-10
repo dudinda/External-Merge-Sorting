@@ -1,7 +1,7 @@
 ﻿using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
 using ExtSort.Services.Sorter.Implementation;
-
+using System.Diagnostics;
 using System.Text;
 
 namespace ExtSort.Services.Sorter
@@ -60,11 +60,22 @@ namespace ExtSort.Services.Sorter
                     var file = 0;
                     var page = 0;
                     var tasks = new List<Task>();
+                    const int messageFrequencySeconds = 5;
+                    var fileMessageTimer = Stopwatch.StartNew();
+                    var pageMessageTimer = Stopwatch.StartNew();
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
                     while (!reader.EndOfStream && !token.IsCancellationRequested)
                     {
-                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
-                        Console.Write($"\rCurrent file: {++file}");
+                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);                        
+                        ++file;
+
+                        if (fileMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
+                        {
+                            fileMessageTimer.Restart();
+                            const string fileMessage = "Current file: {0}";
+                            Console.WriteLine(string.Format(fileMessage, file));
+                        }
+
                         string line;
                         while ((line = reader.ReadLine()) != null &&
                                 line.TryParsePriority(out var priority) &&
@@ -108,7 +119,15 @@ namespace ExtSort.Services.Sorter
 
                         if (tasks.Count == _settings.SortPageSize)
                         {
-                            Console.WriteLine($"{Environment.NewLine}Waiting the {++page} page to be sorted");
+                            ++page;
+
+                            if (pageMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
+                            {
+                                pageMessageTimer.Restart();
+                                const string pageMessage = "Waiting the {0} page to be sorted";
+                                Console.WriteLine(string.Format(pageMessage, page));
+                            }
+
                             await Task.WhenAll(tasks);
                             tasks.Clear();
                         }
