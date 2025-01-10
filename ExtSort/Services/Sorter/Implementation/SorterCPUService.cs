@@ -59,14 +59,16 @@ namespace ExtSort.Services.Sorter
                     var totalRead = 0l;
                     var file = 0;
                     var page = 0;
+                    var lineNumber = 0L;
                     var tasks = new List<Task>();
                     const int messageFrequencySeconds = 5;
                     var fileMessageTimer = Stopwatch.StartNew();
                     var pageMessageTimer = Stopwatch.StartNew();
+                    const string rowBokenFormatMessage = "Line number {0} contains content with a broken format: \"{1}\"";
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
                     while (!reader.EndOfStream && !token.IsCancellationRequested)
                     {
-                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);                        
+                        var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
                         ++file;
 
                         if (fileMessageTimer.Elapsed.Seconds > messageFrequencySeconds)
@@ -76,29 +78,53 @@ namespace ExtSort.Services.Sorter
                             Console.WriteLine(string.Format(fileMessage, file));
                         }
 
-                        string line;
-                        while ((line = reader.ReadLine()) != null &&
-                                line.TryParsePriority(out var priority) &&
-                                !token.IsCancellationRequested)
+                        while (!token.IsCancellationRequested)
                         {
+                            ++lineNumber;
+
+                            if (sourceStream.Position - totalRead > fileSize)
+                                break;
+
+                            var line = reader.ReadLine();
+
+                            if (string.IsNullOrEmpty(line) && reader.EndOfStream)
+                                break;
+
+                            var success = line.TryParsePriority(out var priority);
+
+                            if (!success)
+                                throw new Exception(string.Format(rowBokenFormatMessage, lineNumber, line.Eclipse(100)));
+
                             queue.Enqueue(null, priority);
-                            if (sourceStream.Position - totalRead >= fileSize) break;
                         }
 
                         // StreamReader undelying stream reads form input file by pages
                         // so we need to finish read input file ending with code like below
                         // because target file size becomes zero for small input files
-                        while (sourceStream.Position == sourceStream.Length && !reader.EndOfStream)
+                        while (!token.IsCancellationRequested)
                         {
-                            line = reader.ReadLine();
-                            line.TryParsePriority(out var priority);
+                            ++lineNumber;
+
+                            if (reader.EndOfStream || sourceStream.Position != sourceStream.Length)
+                                break;
+
+                            var line = reader.ReadLine();
+
+                            if (string.IsNullOrEmpty(line) && reader.EndOfStream)
+                                break;
+
+                            var success = line.TryParsePriority(out var priority);
+
+                            if (!success)
+                                throw new Exception(string.Format(rowBokenFormatMessage, lineNumber, line.Eclipse(100)));
+
                             queue.Enqueue(null, priority);
                         }
 
                         token.ThrowIfCancellationRequested();
                         totalRead = sourceStream.Position;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
-                        
+
                         tasks.Add(Task.Run(() =>
                         {
                             using (var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName)))

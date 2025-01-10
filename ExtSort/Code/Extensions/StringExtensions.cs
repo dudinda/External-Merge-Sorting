@@ -21,5 +21,15 @@
 
             return false;
         }
+
+        public static string Eclipse(this string input, int maxLength)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            if (input.Length <= maxLength) return input;
+            const string eclipse = "...";
+            var firstPart = input.AsSpan(0, maxLength / 2);
+            var lastPart = input.AsSpan(input.Length - maxLength / 2);
+            return string.Concat(firstPart, eclipse, lastPart);
+        }
     }
 }
