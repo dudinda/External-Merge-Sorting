@@ -140,11 +140,11 @@ namespace ExtSort.Services.Sorter.Implementation
             var start = 0;
             do
             {
-                var iterator = unsortedFiles.Skip(start).Take(pageStep);
+                var iterator = unsortedFiles.Skip(start).Take(pageStep).ToArray();
                 if (iterator.Any())
                 {
                     Console.WriteLine($"Page: {page + 1}");
-                    var digits = iterator.Select(file => Path.GetFileNameWithoutExtension(file));
+                    var digits = iterator.Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
                     Console.WriteLine($"Sorting: [{string.Join(", ", digits)}]{_UnsortedFileExtension}");
                     foreach (var file in iterator)
                     {
@@ -160,7 +160,7 @@ namespace ExtSort.Services.Sorter.Implementation
                     }
                     await Task.WhenAll(sortedTasks);
 
-                    var sortedPage = sorted.ToList().Chunk(chunkSize).Skip(0).Take(pageStepMerge);
+                    var sortedPage = sorted.ToList().Chunk(chunkSize).Skip(0).Take(pageStepMerge).ToArray();
                     var mergeTask = KWayMerge(sortedPage, mergeTargetLocation, mergeSourceLocation, token);
                     mergeTasks.Add(mergeTask);
 
@@ -246,7 +246,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 _mergeTempCounter = 0;
                 do
                 {
-                    var sortedPage = sortedFiles.Chunk(chunkSize).Skip(step).Take(pageStep);
+                    var sortedPage = sortedFiles.Chunk(chunkSize).Skip(step).Take(pageStep).ToArray();
                     if (!sortedPage.Any()) break;
                     Console.WriteLine($"Page: {page + 1}");
                     await KWayMerge(sortedPage, mergeTargetLocation, mergeSourceLocation, token);
@@ -277,7 +277,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 var counter = Interlocked.Increment(ref _mergeTempCounter);
                 var outputFilename = $"{counter}{_SortedFileExtension}{_TempFileExtension}";
                 var targetPath = Path.Combine(mergeTargetLocation, outputFilename);
-                var digits = chunk.Select(file => Path.GetFileNameWithoutExtension(file));
+                var digits = chunk.Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
                 Console.WriteLine($"Merging [{string.Join(", ", digits)}]{_SortedFileExtension} into: {outputFilename}");
 
                 if (chunk.Length > 1)
