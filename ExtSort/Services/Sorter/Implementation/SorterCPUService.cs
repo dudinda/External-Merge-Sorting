@@ -55,13 +55,13 @@ namespace ExtSort.Services.Sorter
             {
                 using (var reader = new StreamReader(sourceStream))
                 {
-                    var fileSize = sourceStream.Length / numberOfFiles;
+                    var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
                     var totalRead = 0l;
                     var file = 0;
                     var page = 0;
                     var tasks = new List<Task>();
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
-                    while (!reader.EndOfStream && sourceStream.Length > totalRead && !token.IsCancellationRequested)
+                    while (!reader.EndOfStream && !token.IsCancellationRequested)
                     {
                         var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
                         Console.Write($"\rCurrent file: {++file}");
@@ -71,18 +71,27 @@ namespace ExtSort.Services.Sorter
                                 !token.IsCancellationRequested)
                         {
                             queue.Enqueue(null, priority);
-                            if (sourceStream.Position >= totalRead)
-                                break;
+                            if (sourceStream.Position - totalRead >= fileSize) break;
                         }
+
+                        // StreamReader undelying stream reads form input file by pages
+                        // so we need to finish read input file ending with code like below
+                        // because target file size becomes zero for small input files
+                        while (sourceStream.Position == sourceStream.Length && !reader.EndOfStream)
+                        {
+                            line = reader.ReadLine();
+                            line.TryParsePriority(out var priority);
+                            queue.Enqueue(null, priority);
+                        }
+
                         token.ThrowIfCancellationRequested();
-                        totalRead = sourceStream.Position + fileSize;
+                        totalRead = sourceStream.Position;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
                         
                         tasks.Add(Task.Run(() =>
                         {
                             using (var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
                             {
-                                stream.SetLength(fileSize);
                                 using (var writer = new StreamWriter(stream, bufferSize: _settings.SortOutputBufferSize))
                                 {
                                     var builder = new StringBuilder(); (string Str, int Int) row;
