@@ -4,5 +4,6 @@
     {
         public const string GeneratorVerb = "generate";
         public const string SortVerb = "sort";
+        public const string EvaluateVerb = "evaluate";
     }
 }

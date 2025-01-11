@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 using System.CommandLine;
 
-namespace ExtSort.Services.Factories
+namespace ExtSort.Services.Factories 
 {
     internal class CommandFactory
     {
@@ -26,6 +26,7 @@ namespace ExtSort.Services.Factories
             {
                 yield return BuildGenerateCommand();
                 yield return BuildSortCommand();
+                yield return BuildEvaluateCommand();
             }
         }
 
@@ -79,6 +80,20 @@ namespace ExtSort.Services.Factories
                 using var service = factory.Get(result.Mode);
                 using var timer = new SimpleTimer("Sorting a file");
                 await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());
+            });
+
+            return cmd;
+        }
+
+        private Command BuildEvaluateCommand() 
+        {
+            var cmd = new Command(Verbs.EvaluateVerb, VerbDescriptions.EvaluateDesc);
+            cmd.AddAlias(Verbs.EvaluateVerb[0..1]);
+            cmd.AddAlias(Verbs.EvaluateVerb[0..4]);
+
+            cmd.SetHandler(async (ctx) => 
+            {
+                
             });
 
             return cmd;
