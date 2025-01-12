@@ -2,7 +2,7 @@
 
 namespace ExtSort.Models.Settings
 {
-    public class GeneratorSettings 
+    public record GeneratorSettings 
     {
         public int MaxIntegerNumber { get; init; } = 15000;
         public int MaxWordLength { get; init; } = 4;

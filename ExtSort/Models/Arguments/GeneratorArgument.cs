@@ -1,6 +1,6 @@
-﻿namespace ExtSort.Models.Arguments
+﻿namespace ExtSort.Models.Arguments 
 {
-    internal class GeneratorArgument
+    internal record GeneratorArgument
     {
         public string TargetFileName { get; set; }
         public long TargetFileSizeKb { get; set; }

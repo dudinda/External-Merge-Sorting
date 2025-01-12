@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text;
 
-namespace ExtSort.Services.Sorter.Implementation
+namespace ExtSort.Services.Sorter.Implementation 
 {
     public class SorterIOService : ISorterService
     {
@@ -322,7 +322,7 @@ namespace ExtSort.Services.Sorter.Implementation
                     var value = streamReaders[streamReaderIndex].ReadLine();
                     if (value.TryParsePriority(out var priority))
                     {
-                        var row = new Entry() { Row = value, Index = streamReaderIndex };
+                        Entry row = new (value, streamReaderIndex);
                         priorityQueue.Enqueue(row, priority);
                         continue;
                     }
@@ -360,7 +360,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 var value = streamReaders[i].ReadLine();
                 if (value.TryParsePriority(out var priority))
                 {
-                    var row = new Entry() { Row = value, Index = i };
+                    Entry row = new(value, i);
                     queue.Enqueue(row, priority);
                 }
             }

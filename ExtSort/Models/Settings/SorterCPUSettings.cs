@@ -2,7 +2,7 @@
 
 namespace ExtSort.Models.Settings
 {
-    public class SorterCPUSettings : SorterSettings
+    public record SorterCPUSettings : SorterSettings
     {
         public int BufferCapacityLines { get; init; } = 720000;
 

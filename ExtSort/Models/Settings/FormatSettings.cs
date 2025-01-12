@@ -2,7 +2,7 @@
 
 namespace ExtSort.Models.Settings 
 {
-    public class FormatSettings 
+    public record FormatSettings 
     {
         public string EncodingName { get; init; } = "utf-8";
         public bool UsePreamble { get; init; } = true;

@@ -2,7 +2,7 @@
 
 namespace ExtSort.Models.Settings 
 {
-    public class SorterSettings 
+    public record SorterSettings 
     {
         public int NumberOfFiles { get; init; } = 64;
         public int SortPageSize { get; init; } = 16;
