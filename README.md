@@ -16,14 +16,14 @@
 ***
 
 ## Console Interface
-The software provides a console interface with two verbs: [g]enerate, [s]ort for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
+The software provides a console interface with three verbs: ```[g]enerate```, ```[s]ort```, ```[e]valuate``` for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
 
 ```powershell
 .\ExtSort.exe --help
 ```
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/41adcaf7-3b44-40e7-9e92-e43205c8b681" width="600" height = "400" alt="console interface">
+    <img src="https://github.com/user-attachments/assets/de2e9880-cf49-46df-a2b0-903880744e05" width="600" height = "400" alt="console interface">
     <p align="center">Fig. 1 - Using the option --help with the interface.</p>
 </p>
 
