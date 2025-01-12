@@ -2,7 +2,7 @@
   "profiles": {
     "GeneratorDebugProfile": {
       "commandName": "Project",
-      "commandLineArgs": "generate \"output.txt\" 1048576"
+      "commandLineArgs": "generate \"output.txt\" 10048576"
     },
     "SorterCPUDebugProfile": {
       "commandName": "Project",
@@ -11,6 +11,10 @@
     "SorterIODebugProfile": {
       "commandName": "Project",
       "commandLineArgs": "sort \"output.txt\" \"output_sorted.txt\" IO"
+    },
+    "EvaluateDebugProfile": {
+      "commandName": "Project",
+      "commandLineArgs": "eval"
     },
     "HelpProfile": {
       "commandName": "Project",

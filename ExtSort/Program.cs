@@ -1,12 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ExtSort.Code.Extensions;
+using ExtSort.Services.Factories;
+
+using Microsoft.Extensions.Configuration;
 
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using System.Reflection;
-
-using ExtSort.Code.Extensions;
-using ExtSort.Services.Factories;
 
 var config = new ConfigurationBuilder();
 var path = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);

@@ -4,6 +4,7 @@ using ExtSort.Models.Arguments;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
 using ExtSort.Services.Generator;
+using ExtSort.Services.Settings;
 
 using Microsoft.Extensions.Configuration;
 
@@ -94,7 +95,8 @@ namespace ExtSort.Services.Factories
 
             cmd.SetHandler(async (ctx) => 
             {
-                
+                var service = new SettingsService();
+                service.GenerateSettings();
             });
 
             return cmd;
