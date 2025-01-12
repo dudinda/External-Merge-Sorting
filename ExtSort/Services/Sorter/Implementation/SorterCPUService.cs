@@ -23,7 +23,7 @@ namespace ExtSort.Services.Sorter
             {
                 NumberOfFiles = settings.NumberOfFiles,
                 IOPath = settings.IOPath,
-                NewLineSeparator = settings.NewLineSeparator,
+                Format = settings.Format,
                 SortPageSize = settings.SortPageSize,
                 SortOutputBufferSize = settings.SortOutputBufferSize,
                 MergePageSize = settings.MergePageSize,
@@ -55,21 +55,24 @@ namespace ExtSort.Services.Sorter
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
             if (!Directory.Exists(_settings.IOPath.SplitReadPath))
                 throw new InvalidOperationException($"Directory {_settings.IOPath.SplitReadPath} does not exist.");
+            var encoding = Encoding.GetEncoding(_settings.Format.EncodingName);
             await using (var sourceStream = File.OpenRead(srcPath))
             {
-                using (var reader = new StreamReader(sourceStream))
+                using (var reader = new StreamReader(sourceStream, encoding))
                 {
                     var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
+                    var separator = _settings.Format.ColumnSeparator;
                     var totalRead = 0l;
                     var file = 0;
                     var page = 0;
                     var lineNumber = 0L;
                     var tasks = new List<Task>();
-                    using var msgScope = new IntervalScope(5);
 
+                    using var msgScope = new IntervalScope(5);
                     const string rowBokenFormatMessage = "Line number {0} contains content with a broken format: \"{1}\"";
                     const string fileMessage = "Current file: {0}";
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
+
                     while (!reader.EndOfStream && !token.IsCancellationRequested)
                     {
                         var queue = _io.BuildQueue<string>(_settings.BufferCapacityLines);
@@ -121,22 +124,20 @@ namespace ExtSort.Services.Sorter
                         totalRead = sourceStream.Position;
                         var fileName = $"{file}{_SortedFileExtension}{_TempFileExtension}";
 
-                        tasks.Add(Task.Run(() =>
+                        tasks.Add(Task.Run(() => 
                         {
-                            using (var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName)))
-                            {
-                                using (var writer = new StreamWriter(stream, bufferSize: _settings.SortOutputBufferSize))
-                                {
-                                    var builder = new StringBuilder(); (string Str, BigInteger Int) row;
-                                    while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested)
-                                    {
-                                        writer.WriteLine(builder.Append(row.Int).Append('.').Append(row.Str));
-                                        builder.Clear();
-                                    }
+                            using var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName));
+                            using var writer = new StreamWriter(stream, encoding, bufferSize: _settings.SortOutputBufferSize);
+                            if (_settings.Format.UsePreamble && writer.BaseStream.Position > 0)
+                                writer.SkipPreamble();
 
-                                    token.ThrowIfCancellationRequested();
-                                }
+                            var builder = new StringBuilder(); (string Str, BigInteger Int) row;
+                            while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested) 
+                            {
+                                writer.WriteLine(builder.Append(row.Int).Append(separator).Append(row.Str));
+                                builder.Clear();
                             }
+                            token.ThrowIfCancellationRequested();
                         }, token));
 
                         if (tasks.Count == _settings.SortPageSize)

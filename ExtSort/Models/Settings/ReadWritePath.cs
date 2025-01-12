@@ -1,9 +1,8 @@
-﻿using System.Reflection;
-using System.Text;
+﻿using System.Text;
 
 namespace ExtSort.Models.Settings
 {
-    public class ReadWritePath
+    public record ReadWritePath
     {
         public string SplitReadPath { get; init; } = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
         public string SortReadPath { get; init; }

@@ -1,8 +1,4 @@
-﻿namespace ExtSort.Models.Sorter
+﻿namespace ExtSort.Models.Sorter 
 {
-    internal class Entry 
-    {
-        public string Row { get; init; }
-        public int Index { get; init; }
-    }
+    internal record Entry(string Row, int Index);
 }

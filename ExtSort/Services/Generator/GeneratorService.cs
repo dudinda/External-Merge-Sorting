@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 using ExtSort.Code.Constants;
+using ExtSort.Code.Extensions;
 using ExtSort.Models.Settings;
 
 namespace ExtSort.Services.Generator
@@ -18,24 +19,32 @@ namespace ExtSort.Services.Generator
         {
             var sizeB = sizeKb * 1024;
             Console.WriteLine("Generating..");
-            var rnd = new Random(Guid.NewGuid().GetHashCode());
-            var words = GeneratorData.Data;
-            await using (var writer = new StreamWriter(fileName, append: false, new UTF8Encoding(false), _settings.OutputBufferSize))
+
+            var encoding = Encoding.GetEncoding(_settings.Format.EncodingName);
+            await using (var writer = new StreamWriter(fileName, append: false, encoding, _settings.OutputBufferSize))
             {
                 writer.BaseStream.SetLength(sizeB);
-                var builder = new StringBuilder();
-                var target = new StringBuilder();
+                if (!_settings.Format.UsePreamble && writer.BaseStream.Position > 0)
+                    writer.SkipPreamble();
+
+                var words = GeneratorData.Data;
                 var maxNumber = _settings.MaxIntegerNumber + 1;
                 var maxWordLength = _settings.MaxWordLength + 1;
                 var minWordLength = _settings.MinWordLength;
                 var wordsLength = words.Length;
-                while(writer.BaseStream.CanWrite && writer.BaseStream.Position <= sizeB && !token.IsCancellationRequested)
+                var separator = _settings.Format.ColumnSeparator;
+
+                var builder = new StringBuilder();
+                var target = new StringBuilder();
+
+                var rnd = new Random(Guid.NewGuid().GetHashCode());
+                while (writer.BaseStream.CanWrite && writer.BaseStream.Position <= sizeB && !token.IsCancellationRequested)
                 {
                     var numberOfWords = rnd.Next(minWordLength, maxWordLength);
                     while(numberOfWords-- > 0)
                         builder.Append($" {words[rnd.Next(wordsLength)]}");
 
-                    target.Append(rnd.Next(maxNumber)).Append('.').Append(builder);
+                    target.Append(rnd.Next(maxNumber)).Append(separator).Append(builder);
                     writer.WriteLine(target);
                     builder.Clear();
                     target.Clear();

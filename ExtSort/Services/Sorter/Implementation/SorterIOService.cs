@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text;
 
-namespace ExtSort.Services.Sorter.Implementation
+namespace ExtSort.Services.Sorter.Implementation 
 {
     public class SorterIOService : ISorterService
     {
@@ -63,6 +63,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 var tasks = new List<Task>();
                 var buffer = new byte[fileSize];
                 var extraBuffer = new List<byte>();
+                var newLine = _settings.Format.NewLineDelimiter;
                 Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
                 while (sourceStream.Length > totalRead && !token.IsCancellationRequested)
                 {
@@ -80,14 +81,14 @@ namespace ExtSort.Services.Sorter.Implementation
                         var @byte = (byte)value;
                         buffer[runBytesRead] = @byte;
                         ++runBytesRead;
-                        if (@byte == _settings.NewLineSeparator)
+                        if (@byte == newLine)
                             ++totalRows;
                     }
                     token.ThrowIfCancellationRequested();
 
                     var extraByte = buffer[fileSize - 1];
 
-                    while (extraByte != _settings.NewLineSeparator)
+                    while (extraByte != newLine)
                     {
                         var flag = sourceStream.ReadByte();
                         if (flag == _EOF || flag == _NULL)
@@ -210,10 +211,11 @@ namespace ExtSort.Services.Sorter.Implementation
                     var builder = new StringBuilder();
                     var index = 0;
                     (string Str, BigInteger Int) row;
+                    var separator = _settings.Format.ColumnSeparator;
                     while (index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
-                        builder.Append(row.Int).Append('.').Append(row.Str);
+                        builder.Append(row.Int).Append(separator).Append(row.Str);
                         streamWriter.WriteLine(builder);
                         builder.Clear();
                         ++index;
@@ -320,7 +322,7 @@ namespace ExtSort.Services.Sorter.Implementation
                     var value = streamReaders[streamReaderIndex].ReadLine();
                     if (value.TryParsePriority(out var priority))
                     {
-                        var row = new Entry() { Row = value, Index = streamReaderIndex };
+                        Entry row = new (value, streamReaderIndex);
                         priorityQueue.Enqueue(row, priority);
                         continue;
                     }
@@ -358,7 +360,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 var value = streamReaders[i].ReadLine();
                 if (value.TryParsePriority(out var priority))
                 {
-                    var row = new Entry() { Row = value, Index = i };
+                    Entry row = new(value, i);
                     queue.Enqueue(row, priority);
                 }
             }

@@ -4,12 +4,13 @@ using ExtSort.Models.Arguments;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
 using ExtSort.Services.Generator;
+using ExtSort.Services.Settings;
 
 using Microsoft.Extensions.Configuration;
 
 using System.CommandLine;
 
-namespace ExtSort.Services.Factories
+namespace ExtSort.Services.Factories 
 {
     internal class CommandFactory
     {
@@ -26,6 +27,7 @@ namespace ExtSort.Services.Factories
             {
                 yield return BuildGenerateCommand();
                 yield return BuildSortCommand();
+                yield return BuildEvaluateCommand();
             }
         }
 
@@ -48,6 +50,7 @@ namespace ExtSort.Services.Factories
                 result.TargetFileSizeKb = fileSize;
 
                 var settings = _config.GetSection(nameof(GeneratorSettings)).Get<GeneratorSettings>();
+                _config.GetSection(nameof(FormatSettings)).Bind(settings.Format);
                 if (!settings.Validate(out var errors))
                     throw new InvalidOperationException(errors.ToString());
 
@@ -79,6 +82,21 @@ namespace ExtSort.Services.Factories
                 using var service = factory.Get(result.Mode);
                 using var timer = new SimpleTimer("Sorting a file");
                 await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());
+            });
+
+            return cmd;
+        }
+
+        private Command BuildEvaluateCommand() 
+        {
+            var cmd = new Command(Verbs.EvaluateVerb, VerbDescriptions.EvaluateDesc);
+            cmd.AddAlias(Verbs.EvaluateVerb[0..1]);
+            cmd.AddAlias(Verbs.EvaluateVerb[0..4]);
+
+            cmd.SetHandler((ctx) => 
+            {
+                var service = new SettingsService();
+                service.GenerateSettings();
             });
 
             return cmd;
