@@ -93,7 +93,7 @@ namespace ExtSort.Services.Factories
             cmd.AddAlias(Verbs.EvaluateVerb[0..1]);
             cmd.AddAlias(Verbs.EvaluateVerb[0..4]);
 
-            cmd.SetHandler(async (ctx) => 
+            cmd.SetHandler((ctx) => 
             {
                 var service = new SettingsService();
                 service.GenerateSettings();

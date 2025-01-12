@@ -25,10 +25,8 @@ namespace ExtSort.Services.Generator
             {
                 writer.BaseStream.SetLength(sizeB);
                 if (!_settings.Format.UsePreamble && writer.BaseStream.Position > 0)
-                {
                     writer.SkipPreamble();
-                }
-              
+
                 var words = GeneratorData.Data;
                 var maxNumber = _settings.MaxIntegerNumber + 1;
                 var maxWordLength = _settings.MaxWordLength + 1;

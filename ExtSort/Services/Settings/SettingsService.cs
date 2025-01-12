@@ -3,10 +3,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace ExtSort.Services.Settings {
+namespace ExtSort.Services.Settings 
+{
     internal class SettingsService 
     {
-        public void GenerateSettings() {
+        public void GenerateSettings() 
+        {
             var generator = new GeneratorSettings();
             var format = new FormatSettings();
             var sorterCpu = new SorterCPUSettings();
