@@ -49,6 +49,7 @@ namespace ExtSort.Services.Factories
                 result.TargetFileSizeKb = fileSize;
 
                 var settings = _config.GetSection(nameof(GeneratorSettings)).Get<GeneratorSettings>();
+                _config.GetSection(nameof(FormatSettings)).Bind(settings.Format);
                 if (!settings.Validate(out var errors))
                     throw new InvalidOperationException(errors.ToString());
 

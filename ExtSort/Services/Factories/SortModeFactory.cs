@@ -27,6 +27,7 @@ namespace ExtSort.Services.Factories
                     settings = new SorterIOSettings();
                     _config.GetSection(nameof(SorterSettings)).Bind(settings);
                     _config.GetSection(nameof(SorterIOSettings)).Bind(settings);
+                    _config.GetSection(nameof(FormatSettings)).Bind(settings.Format);
                     if (!settings.Validate(out errors))
                         throw new InvalidOperationException(errors.ToString());
                     return new SorterIOService(settings as SorterIOSettings);
@@ -35,6 +36,7 @@ namespace ExtSort.Services.Factories
                     settings = new SorterCPUSettings();
                     _config.GetSection(nameof(SorterSettings)).Bind(settings);
                     _config.GetSection(nameof(SorterCPUSettings)).Bind(settings);
+                    _config.GetSection(nameof(FormatSettings)).Bind(settings.Format);
                     if (!settings.Validate(out errors))
                         throw new InvalidOperationException(errors.ToString());
                     return new SorterCPUService(settings as SorterCPUSettings);

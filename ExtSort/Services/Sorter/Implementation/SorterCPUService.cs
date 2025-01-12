@@ -23,7 +23,7 @@ namespace ExtSort.Services.Sorter
             {
                 NumberOfFiles = settings.NumberOfFiles,
                 IOPath = settings.IOPath,
-                NewLineSeparator = settings.NewLineSeparator,
+                Format = settings.Format,
                 SortPageSize = settings.SortPageSize,
                 SortOutputBufferSize = settings.SortOutputBufferSize,
                 MergePageSize = settings.MergePageSize,
