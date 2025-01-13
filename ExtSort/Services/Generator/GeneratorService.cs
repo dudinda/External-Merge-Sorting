@@ -24,7 +24,7 @@ namespace ExtSort.Services.Generator
             await using (var writer = new StreamWriter(fileName, append: false, encoding, _settings.OutputBufferSize))
             {
                 writer.BaseStream.SetLength(sizeB);
-                if (!_settings.Format.UsePreamble && writer.BaseStream.Position > 0)
+                if (!_settings.Format.UsePreamble)
                     writer.SkipPreamble();
 
                 var words = GeneratorData.Data;

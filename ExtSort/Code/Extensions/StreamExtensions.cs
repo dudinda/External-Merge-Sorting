@@ -6,7 +6,8 @@
         {
             var tmp = writer.AutoFlush;
             writer.AutoFlush = true;
-            writer.BaseStream.Position = 0;
+            if (writer.BaseStream.Position > 0)
+                writer.BaseStream.Position = 0;
             writer.AutoFlush = tmp;
         }
     }
