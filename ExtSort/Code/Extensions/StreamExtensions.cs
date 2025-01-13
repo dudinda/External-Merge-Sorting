@@ -5,7 +5,7 @@
         public static void SkipPreamble(this StreamWriter writer) 
         {
             var tmp = writer.AutoFlush;
-            writer.AutoFlush = false;
+            writer.AutoFlush = true;
             writer.BaseStream.Position = 0;
             writer.AutoFlush = tmp;
         }
