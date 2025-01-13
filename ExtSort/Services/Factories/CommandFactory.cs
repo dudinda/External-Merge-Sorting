@@ -77,6 +77,8 @@ namespace ExtSort.Services.Factories
             var cmd = new Command(Verbs.EvaluateVerb, VerbDescriptions.EvaluateDesc);
             cmd.AddAlias(Verbs.EvaluateVerb[0..1]);
             cmd.AddAlias(Verbs.EvaluateVerb[0..4]);
+            foreach (var arg in ArgumentFactory.EvaluatorArguments.Value.Values)
+                cmd.AddArgument(arg);
 
             cmd.SetHandler((ctx) => 
             {
