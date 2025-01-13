@@ -13,6 +13,7 @@
 4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
 5. [Strategy to merge a file 100 GB](#strategy-to-merge-a-file-100-gb)
 6. [Created with](#created-with)
+7. [How to run the program](#how-to-run-the-program)
 ***
 
 ## Console Interface
@@ -154,7 +155,9 @@ The general merging strategy: ```4096 -> 512``` (during the Sorting/Merging Phas
 
 [Microsoft.Extensions.Configuration](https://www.nuget.org/packages/microsoft.extensions.configuration/)
 
-## How to run the program
+****
+
+## How To Run The Program
 
 The result of executing the `dotnet build` command is a whole bunch of files that are tedious to
 administer. Therefore, it is convenient to work with a compact view of the program, which can be
