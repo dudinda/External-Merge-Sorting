@@ -7,12 +7,17 @@ namespace ExtSort.Services.Settings
 {
     internal class SettingsService 
     {
-        public void GenerateSettings() 
+        public void GenerateSettings(int fileSizeMb, int ramAvailableMb) 
         {
             var generator = new GeneratorSettings();
             var format = new FormatSettings();
             var sorterCpu = new SorterCPUSettings();
             var sorterIo = new SorterIOSettings();
+
+            var procCount = Environment.ProcessorCount;
+            var pageSize = Math.Min(fileSizeMb, ramAvailableMb);
+            var fileSizePerPage = pageSize / procCount;
+
             var drive = Path.GetPathRoot(Environment.SystemDirectory);
             var tmp = Path.Combine(drive, "Temp", "Files");
             var obj = new JsonObject()
@@ -27,10 +32,10 @@ namespace ExtSort.Services.Settings
                 [nameof(SorterSettings)] = new JsonObject() 
                 {
                     [nameof(SorterSettings.NumberOfFiles)] = sorterCpu.NumberOfFiles,
-                    [nameof(SorterSettings.SortPageSize)] = Environment.ProcessorCount,
+                    [nameof(SorterSettings.SortPageSize)] = procCount,
                     [nameof(SorterSettings.SortOutputBufferSize)] = 4096 * 1024,
-                    [nameof(SorterSettings.MergePageSize)] = (int)Math.Sqrt(Environment.ProcessorCount),
-                    [nameof(SorterSettings.MergeChunkSize)] = Environment.ProcessorCount,
+                    [nameof(SorterSettings.MergePageSize)] = (int)Math.Sqrt(procCount),
+                    [nameof(SorterSettings.MergeChunkSize)] = procCount,
                     [nameof(SorterSettings.MergeOutputBufferSize)] = sorterCpu.MergeOutputBufferSize,
                     [nameof(SorterSettings.IOPath)] = new JsonObject() 
                     {
