@@ -47,17 +47,17 @@ namespace ExtSort.Services.Factories
 
         private static IEnumerable<Argument> BuildEvaluator()
         {
-            yield return new ExtSortArgument<string>("file_size_mb", "Size of a file (mb)") 
+            yield return new ExtSortArgument<int>("file_size_mb", () => 1024, "Size of a file (mb)") 
             {
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(EvaluatorBinder.FileSizeMb)
             };
-            yield return new ExtSortArgument<string>("ram_available_mb", "RAM available (mb)") 
+            yield return new ExtSortArgument<int>("ram_available_mb", () => 4096, "RAM available (mb)") 
             {
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(EvaluatorBinder.RamAvailableMb)
             };
-            yield return new ExtSortArgument<string>("number_of_files", "The number of sorted files to be merged") 
+            yield return new ExtSortArgument<int>("number_of_files", () => 64, "The number of sorted files to be merged") 
             {
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(EvaluatorBinder.NumberOfFiles)

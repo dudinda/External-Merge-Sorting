@@ -14,7 +14,7 @@
     },
     "EvaluateDebugProfile": {
       "commandName": "Project",
-      "commandLineArgs": "eval"
+      "commandLineArgs": "eval 1024 4096 64 100 10"
     },
     "HelpProfile": {
       "commandName": "Project",

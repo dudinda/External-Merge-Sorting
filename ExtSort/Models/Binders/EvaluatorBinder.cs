@@ -10,22 +10,17 @@ namespace ExtSort.Models.Binders
         {
             var args = ArgumentFactory.EvaluatorArguments.Value;
 
-            if (!int.TryParse(parser.GetValueForArgument(args[nameof(FileSizeMb)])?.ToString(), out var fileSizeMb))
-                throw new InvalidCastException("The size of a file is in incorrect format.");
-            if (!int.TryParse(parser.GetValueForArgument(args[nameof(RamAvailableMb)])?.ToString(), out var ramSizeMb))
-                throw new InvalidCastException("The size of RAM available is in incorrect format.");
             if (!int.TryParse(parser.GetValueForArgument(args[nameof(DiskLatencyMs)])?.ToString(), out var diskLatencyMs))
                 throw new InvalidCastException("The size of RAM available is in incorrect format.");
             if (!int.TryParse(parser.GetValueForArgument(args[nameof(DiskRandomReadSpeedMbs)])?.ToString(), out var diskRandomReadSpeedMbs))
                 throw new InvalidCastException("The size of RAM available is in incorrect format.");
-            if (!int.TryParse(parser.GetValueForArgument(args[nameof(NumberOfFiles)])?.ToString(), out var numberOfFiles))
-                throw new InvalidCastException("The size of RAM available is in incorrect format.");
 
-            FileSizeMb = fileSizeMb;
-            RamAvailableMb = ramSizeMb;
+            FileSizeMb = (int)parser.GetValueForArgument(args[nameof(FileSizeMb)]);
+            RamAvailableMb = (int)parser.GetValueForArgument(args[nameof(RamAvailableMb)]);
+            NumberOfFiles = (int)parser.GetValueForArgument(args[nameof(NumberOfFiles)]);
+
             DiskLatencyMs = diskLatencyMs;
             DiskRandomReadSpeedMbs = diskRandomReadSpeedMbs;
-            NumberOfFiles = numberOfFiles;
         }
 
         public int FileSizeMb { get; init; }
