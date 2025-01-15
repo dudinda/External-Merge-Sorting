@@ -3,11 +3,32 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace ExtSort.Services.Settings 
+namespace ExtSort.Services.Evaluator 
 {
-    internal class SettingsService 
+    internal class EvaluatorService 
     {
-        public void GenerateSettings(int fileSizeMb, int ramAvailableMb) 
+        private readonly EvaluatorSettings _settings;
+        public EvaluatorService(EvaluatorSettings settings) 
+        {
+            _settings = settings ?? throw new NullReferenceException(nameof(settings));
+        }
+
+        /// <summary>
+        ///1. Sorting phase for k buffers 
+        ///Let average permuatition number for the sort provided be floor(n/2)
+        ///Then for m comparators defined the number is floor(nm/2)
+        ///Take k buffers which are sorted in parallel 1/k * floor(nm/2)
+        ///2.Optimal merge passes number depending on the number of chunks provided
+        ///Let the number of merge passes equals C 
+        ///Let the number of chunks equals M then C ~sqrt(M)
+        ///3. Optimal number of files to merge depending on a disk characteritics
+        ///a) HDD
+        ///Let the disk random access speed equals s
+        ///Let the disk latency equals l
+        ///Then the total speed for x files
+        ///b) SSD
+        /// </summary>
+        public void GenerateSettings() 
         {
             var generator = new GeneratorSettings();
             var format = new FormatSettings();
@@ -15,9 +36,9 @@ namespace ExtSort.Services.Settings
             var sorterIo = new SorterIOSettings();
 
             var procCount = Environment.ProcessorCount;
-            var pageSize = Math.Min(fileSizeMb, ramAvailableMb);
+            var pageSize = Math.Min(_settings.FileSizeMb, _settings.RamAvailableMb);
             var fileSizePerPage = pageSize / procCount;
-
+            
             var drive = Path.GetPathRoot(Environment.SystemDirectory);
             var tmp = Path.Combine(drive, "Temp", "Files");
             var obj = new JsonObject()

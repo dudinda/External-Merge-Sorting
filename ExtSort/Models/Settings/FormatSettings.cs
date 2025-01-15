@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
-namespace ExtSort.Models.Settings {
+namespace ExtSort.Models.Settings 
+{
     public record FormatSettings 
     {
         public string EncodingName { get; init; } = "utf-8";

@@ -57,6 +57,22 @@ namespace ExtSort.Services.Factories
                 Arity = ArgumentArity.ExactlyOne,
                 TargetPropertyName = nameof(EvaluatorBinder.RamAvailableMb)
             };
+            yield return new ExtSortArgument<string>("number_of_files", "The number of sorted files to be merged") 
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                TargetPropertyName = nameof(EvaluatorBinder.NumberOfFiles)
+            };
+            yield return new ExtSortArgument<string>("disk_random_read_speed", "Random access reading speed of a disk (mb/s)")
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                TargetPropertyName = nameof(EvaluatorBinder.DiskRandomReadSpeedMbs)
+            };
+            yield return new ExtSortArgument<string>("disk_latency", "Latency of a disk (ms)") 
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                TargetPropertyName = nameof(EvaluatorBinder.DiskLatencyMs)
+            };
+
         }
 
         private static Dictionary<string, Argument> BuildArguments(this IEnumerable<Argument> arguments)

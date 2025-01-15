@@ -2,8 +2,8 @@
 using ExtSort.Models.Binders;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
+using ExtSort.Services.Evaluator;
 using ExtSort.Services.Generator;
-using ExtSort.Services.Settings;
 
 using Microsoft.Extensions.Configuration;
 
@@ -82,9 +82,11 @@ namespace ExtSort.Services.Factories
 
             cmd.SetHandler((ctx) => 
             {
-                var binder = new EvaluatorBinder(ctx.BindingContext.ParseResult);
-                var service = new SettingsService();
-                service.GenerateSettings(binder.FileSizeMb, binder.RamAvailableMb);
+                var settings = new EvaluatorSettings(new EvaluatorBinder(ctx.BindingContext.ParseResult));
+                if (!settings.Validate(out var errors))
+                    throw new InvalidOperationException(errors.ToString());
+                var service = new EvaluatorService(settings);
+                service.GenerateSettings();
             });
 
             return cmd;
