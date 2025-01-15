@@ -24,7 +24,7 @@ The software provides a console interface with three verbs: ```[g]enerate```, ``
 ```
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/532277a0-3324-4a90-8ab3-36b8af2778d4" width="600" height = "400" alt="console interface">
+    <img src="https://github.com/user-attachments/assets/e0ba419b-b842-4908-9e6b-7f4fc6775ead" width="600" height = "400" alt="console interface">
     <p align="center">Fig. 1 - Using the option --help with the interface.</p>
 </p>
 
