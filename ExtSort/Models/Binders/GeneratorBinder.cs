@@ -9,10 +9,10 @@ namespace ExtSort.Models.Binders
         {
             var args = ArgumentFactory.GeneratorArguments.Value;
          
-            var size = parser.GetValueForArgument(args[nameof(TargetFileSizeKb)])?.ToString();
-            if (!long.TryParse(size?.ToString(), out var fileSize))
+            if (!long.TryParse(parser.GetValueForArgument(args[nameof(TargetFileSizeKb)])?.ToString(), out var fileSizeKb))
                 throw new InvalidCastException("The length of the output file is in incorrect format.");
-            TargetFileSizeKb = fileSize;
+
+            TargetFileSizeKb = fileSizeKb;
             TargetFileName = (string)parser.GetValueForArgument(args[nameof(TargetFileName)]);
         }
 

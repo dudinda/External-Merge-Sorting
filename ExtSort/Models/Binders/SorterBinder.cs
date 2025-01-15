@@ -10,6 +10,7 @@ namespace ExtSort.Models.Binders
         public SorterBinder(ParseResult parser) 
         {
             var args = ArgumentFactory.SorterArguments.Value;
+
             TargetFileName = (string)parser.GetValueForArgument(args[nameof(TargetFileName)]);
             SourceFileName = (string)parser.GetValueForArgument(args[nameof(SourceFileName)]);
             Mode = (SortMode)parser.GetValueForArgument(args[nameof(Mode)]);
