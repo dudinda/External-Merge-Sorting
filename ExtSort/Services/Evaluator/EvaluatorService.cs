@@ -14,13 +14,14 @@ namespace ExtSort.Services.Evaluator
         }
 
         /// <summary>
+        ///[PROTOTYPE]
         ///1. Sorting phase for k buffers 
         ///Let average permuatition number for the sort provided be floor(n/2)
         ///Then for m comparators defined the number is floor(nm/2)
         ///Take k buffers which are sorted in parallel 1/k * floor(nm/2)
         ///2.Optimal merge passes number depending on the number of chunks provided
         ///Let the number of merge passes equals C 
-        ///Let the number of chunks equals M then C ~sqrt(M)
+        ///Let the number of chunks equals M then C = ~M^(1/h) where h is a height of the B-Tree
         ///3. Optimal number of files to merge depending on a disk characteritics
         ///a) HDD
         ///Let the disk random access speed equals s
@@ -52,7 +53,7 @@ namespace ExtSort.Services.Evaluator
                 },
                 [nameof(SorterSettings)] = new JsonObject() 
                 {
-                    [nameof(SorterSettings.NumberOfFiles)] = sorterCpu.NumberOfFiles,
+                    [nameof(SorterSettings.NumberOfFiles)] = _settings.NumberOfFiles,
                     [nameof(SorterSettings.SortPageSize)] = procCount,
                     [nameof(SorterSettings.SortOutputBufferSize)] = 4096 * 1024,
                     [nameof(SorterSettings.MergePageSize)] = (int)Math.Sqrt(procCount),
