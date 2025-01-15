@@ -4,8 +4,13 @@ using System.Text;
 
 namespace ExtSort.Models.Settings 
 {
-    internal record EvaluatorSettings(EvaluatorBinder binder) : EvaluatorBinder 
+    internal record EvaluatorSettings : EvaluatorBinder 
     {
+        public EvaluatorSettings(EvaluatorBinder settings) : base(settings) 
+        {
+
+        }
+
         public bool Validate(out StringBuilder errors) 
         {
             errors = new StringBuilder();
