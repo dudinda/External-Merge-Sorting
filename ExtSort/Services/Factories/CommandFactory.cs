@@ -1,10 +1,9 @@
 ﻿using ExtSort.Code.Constants;
-using ExtSort.Code.Enums;
-using ExtSort.Models.Arguments;
+using ExtSort.Models.Binders;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
+using ExtSort.Services.Evaluator;
 using ExtSort.Services.Generator;
-using ExtSort.Services.Settings;
 
 using Microsoft.Extensions.Configuration;
 
@@ -40,15 +39,7 @@ namespace ExtSort.Services.Factories
 
             cmd.SetHandler(async (ctx) =>
             {
-                var args = ArgumentFactory.GeneratorArguments.Value;
-                var parser = ctx.BindingContext.ParseResult;
-                var result = new GeneratorArgument();
-                result.TargetFileName = (string)parser.GetValueForArgument(args[nameof(result.TargetFileName)]);
-                var size = parser.GetValueForArgument(args[nameof(result.TargetFileSizeKb)])?.ToString();
-                if (!long.TryParse(size, out var fileSize))
-                    throw new InvalidCastException("The length of the output file is in incorrect format.");
-                result.TargetFileSizeKb = fileSize;
-
+                var binder = new GeneratorBinder(ctx.BindingContext.ParseResult);
                 var settings = _config.GetSection(nameof(GeneratorSettings)).Get<GeneratorSettings>();
                 _config.GetSection(nameof(FormatSettings)).Bind(settings.Format);
                 if (!settings.Validate(out var errors))
@@ -56,7 +47,7 @@ namespace ExtSort.Services.Factories
 
                 var service = new GeneratorService(settings);
                 using var timer = new SimpleTimer("Generating a file");
-                await service.Generate(result.TargetFileName, result.TargetFileSizeKb, ctx.GetCancellationToken());
+                await service.Generate(binder.TargetFileName, binder.TargetFileSizeKb, ctx.GetCancellationToken());
             });
 
             return cmd;
@@ -71,17 +62,11 @@ namespace ExtSort.Services.Factories
 
             cmd.SetHandler(async (ctx) =>
             {
-                var args = ArgumentFactory.SorterArguments.Value;
-                var parser = ctx.BindingContext.ParseResult;
-                var result = new SorterArgument();
-                result.TargetFileName = (string)parser.GetValueForArgument(args[nameof(result.TargetFileName)]);
-                result.SourceFileName = (string)parser.GetValueForArgument(args[nameof(result.SourceFileName)]);
-                result.Mode = (SortMode)parser.GetValueForArgument(args[nameof(result.Mode)]);
-
+                var binder = new SorterBinder(ctx.BindingContext.ParseResult);
                 var factory = new SortModeFactory(_config);
-                using var service = factory.Get(result.Mode);
+                using var service = factory.Get(binder.Mode);
                 using var timer = new SimpleTimer("Sorting a file");
-                await service.SortFile(result.SourceFileName, result.TargetFileName, ctx.GetCancellationToken());
+                await service.SortFile(binder.SourceFileName, binder.TargetFileName, ctx.GetCancellationToken());
             });
 
             return cmd;
@@ -92,10 +77,15 @@ namespace ExtSort.Services.Factories
             var cmd = new Command(Verbs.EvaluateVerb, VerbDescriptions.EvaluateDesc);
             cmd.AddAlias(Verbs.EvaluateVerb[0..1]);
             cmd.AddAlias(Verbs.EvaluateVerb[0..4]);
+            foreach (var arg in ArgumentFactory.EvaluatorArguments.Value.Values)
+                cmd.AddArgument(arg);
 
             cmd.SetHandler((ctx) => 
             {
-                var service = new SettingsService();
+                var settings = new EvaluatorSettings(new EvaluatorBinder(ctx.BindingContext.ParseResult));
+                if (!settings.Validate(out var errors))
+                    throw new InvalidOperationException(errors.ToString());
+                var service = new EvaluatorService(settings);
                 service.GenerateSettings();
             });
 

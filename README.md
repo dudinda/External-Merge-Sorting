@@ -13,6 +13,7 @@
 4. [Strategy to merge a file 10 GB](#strategy-to-merge-a-file-10-gb)
 5. [Strategy to merge a file 100 GB](#strategy-to-merge-a-file-100-gb)
 6. [Created with](#created-with)
+7. [How to run the program](#how-to-run-the-program)
 ***
 
 ## Console Interface
@@ -23,7 +24,7 @@ The software provides a console interface with three verbs: ```[g]enerate```, ``
 ```
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/de2e9880-cf49-46df-a2b0-903880744e05" width="600" height = "400" alt="console interface">
+    <img src="https://github.com/user-attachments/assets/e0ba419b-b842-4908-9e6b-7f4fc6775ead" width="600" height = "400" alt="console interface">
     <p align="center">Fig. 1 - Using the option --help with the interface.</p>
 </p>
 
@@ -154,7 +155,9 @@ The general merging strategy: ```4096 -> 512``` (during the Sorting/Merging Phas
 
 [Microsoft.Extensions.Configuration](https://www.nuget.org/packages/microsoft.extensions.configuration/)
 
-## How to run the program
+****
+
+## How To Run The Program
 
 The result of executing the `dotnet build` command is a whole bunch of files that are tedious to
 administer. Therefore, it is convenient to work with a compact view of the program, which can be

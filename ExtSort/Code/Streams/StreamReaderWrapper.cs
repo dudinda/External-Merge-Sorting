@@ -3,8 +3,13 @@ using System.Text;
 
 namespace ExtSort.Code.Streams
 {
+    /// <summary>
+    /// Wrapper around the <see cref="StreamReader"/> to allow read
+    /// lines as the Span or as the Memory of type char
+    /// </summary>
     public class StreamReaderWrapper : TextReader
     {
+        #region StreamReader Implementation
         // Using a 1K byte buffer and a 4K FileStream buffer works out pretty well
         // perf-wise.  On even a 40 MB text file, any perf loss by using a 4K
         // buffer is negated by the win of allocating a smaller byte[], which
@@ -594,90 +599,6 @@ namespace ExtSort.Code.Streams
             void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name);
         }
 
-        public Memory<char> ReadLineAsMemory()
-        {
-            ThrowIfDisposed();
-
-            if (_charPos == _charLen)
-            {
-                if (ReadBuffer() == 0)
-                {
-                    return null;
-                }
-            }
-
-            do
-            {
-                int i = _charPos;
-                do
-                {
-                    char ch = _charBuffer[i];
-                    // Note the following common line feed chars:
-                    // \n - UNIX   \r\n - DOS   \r - Mac
-                    if (ch == '\r' || ch == '\n')
-                    {
-                        var result = _charBuffer.AsMemory().Slice(_charPos, i - _charPos);
-                        _charPos = i + 1;
-                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0))
-                        {
-                            if (_charBuffer[_charPos] == '\n')
-                            {
-                                _charPos++;
-                            }
-                        }
-                        return result;
-                    }
-                    i++;
-                } while (i < _charLen);
-
-                i = _charLen - _charPos;
-                Array.Resize(ref _charBuffer, i + 80);
-            } while (ReadBuffer() > 0);
-            return _charBuffer.AsMemory();
-        }
-
-        public Span<char> ReadLineAsSpan()
-        {
-            ThrowIfDisposed();
-
-            if (_charPos == _charLen)
-            {
-                if (ReadBuffer() == 0)
-                {
-                    return null;
-                }
-            }
-
-            do
-            {
-                int i = _charPos;
-                do
-                {
-                    char ch = _charBuffer[i];
-                    // Note the following common line feed chars:
-                    // \n - UNIX   \r\n - DOS   \r - Mac
-                    if (ch == '\r' || ch == '\n')
-                    {
-                        var result = _charBuffer.AsSpan().Slice(_charPos, i - _charPos);
-                        _charPos = i + 1;
-                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0))
-                        {
-                            if (_charBuffer[_charPos] == '\n')
-                            {
-                                _charPos++;
-                            }
-                        }
-                        return result;
-                    }
-                    i++;
-                } while (i < _charLen);
-
-                i = _charLen - _charPos;
-                Array.Resize(ref _charBuffer, i + 80);
-            } while (ReadBuffer() > 0);
-            return _charBuffer.AsSpan();
-        }
-
         private static Stream ValidateArgsAndOpenPath(string path, Encoding encoding, FileStreamOptions options)
         {
             ValidateArgs(path, encoding);
@@ -730,5 +651,74 @@ namespace ExtSort.Code.Streams
             }
         }
 
+        #endregion
+
+        public Memory<char> ReadLineAsMemory() {
+            ThrowIfDisposed();
+
+            if (_charPos == _charLen) {
+                if (ReadBuffer() == 0) {
+                    return null;
+                }
+            }
+
+            do {
+                int i = _charPos;
+                do {
+                    char ch = _charBuffer[i];
+                    // Note the following common line feed chars:
+                    // \n - UNIX   \r\n - DOS   \r - Mac
+                    if (ch == '\r' || ch == '\n') {
+                        var result = _charBuffer.AsMemory().Slice(_charPos, i - _charPos);
+                        _charPos = i + 1;
+                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0)) {
+                            if (_charBuffer[_charPos] == '\n') {
+                                _charPos++;
+                            }
+                        }
+                        return result;
+                    }
+                    i++;
+                } while (i < _charLen);
+
+                i = _charLen - _charPos;
+                Array.Resize(ref _charBuffer, i + 80);
+            } while (ReadBuffer() > 0);
+            return _charBuffer.AsMemory();
+        }
+
+        public Span<char> ReadLineAsSpan() {
+            ThrowIfDisposed();
+
+            if (_charPos == _charLen) {
+                if (ReadBuffer() == 0) {
+                    return null;
+                }
+            }
+
+            do {
+                int i = _charPos;
+                do {
+                    char ch = _charBuffer[i];
+                    // Note the following common line feed chars:
+                    // \n - UNIX   \r\n - DOS   \r - Mac
+                    if (ch == '\r' || ch == '\n') {
+                        var result = _charBuffer.AsSpan().Slice(_charPos, i - _charPos);
+                        _charPos = i + 1;
+                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0)) {
+                            if (_charBuffer[_charPos] == '\n') {
+                                _charPos++;
+                            }
+                        }
+                        return result;
+                    }
+                    i++;
+                } while (i < _charLen);
+
+                i = _charLen - _charPos;
+                Array.Resize(ref _charBuffer, i + 80);
+            } while (ReadBuffer() > 0);
+            return _charBuffer.AsSpan();
+        }
     }
 }

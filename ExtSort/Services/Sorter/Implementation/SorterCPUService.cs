@@ -128,7 +128,7 @@ namespace ExtSort.Services.Sorter
                         {
                             using var stream = File.OpenWrite(Path.Combine(_settings.IOPath.SortWritePath, fileName));
                             using var writer = new StreamWriter(stream, encoding, bufferSize: _settings.SortOutputBufferSize);
-                            if (!_settings.Format.UsePreamble && writer.BaseStream.Position > 0)
+                            if (!_settings.Format.UsePreamble)
                                 writer.SkipPreamble();
 
                             var builder = new StringBuilder(); (string Str, BigInteger Int) row;
