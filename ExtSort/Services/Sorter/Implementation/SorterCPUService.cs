@@ -19,17 +19,7 @@ namespace ExtSort.Services.Sorter
         public SorterCPUService(SorterCPUSettings settings)
         {
             _settings = settings ?? throw new NullReferenceException(nameof(settings));
-            _io = new SorterIOService(new SorterIOSettings()
-            {
-                NumberOfFiles = settings.NumberOfFiles,
-                IOPath = settings.IOPath,
-                Format = settings.Format,
-                SortPageSize = settings.SortPageSize,
-                SortOutputBufferSize = settings.SortOutputBufferSize,
-                MergePageSize = settings.MergePageSize,
-                MergeChunkSize = settings.MergeChunkSize,
-                MergeOutputBufferSize = settings.MergeOutputBufferSize,
-            });
+            _io = new SorterIOService(new SorterIOSettings(settings));
         }
 
         public async Task SortFile(string srcFile, string dstFile, CancellationToken token)

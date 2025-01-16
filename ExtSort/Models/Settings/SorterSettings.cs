@@ -2,8 +2,20 @@
 
 namespace ExtSort.Models.Settings 
 {
-    public record SorterSettings 
+    public record SorterSettings()
     {
+        public SorterSettings(SorterSettings settings) 
+        {
+            NumberOfFiles = settings.NumberOfFiles;
+            SortPageSize = settings.SortPageSize;
+            SortOutputBufferSize = settings.SortOutputBufferSize;
+            MergePageSize = settings.MergePageSize;
+            MergeChunkSize = settings.MergeChunkSize;
+            MergeOutputBufferSize = settings.MergeOutputBufferSize;
+            IOPath = settings.IOPath;
+            Format = settings.Format;
+        }
+
         public int NumberOfFiles { get; init; } = 64;
         public int SortPageSize { get; init; } = 16;
         public int SortOutputBufferSize { get; init; } = 81920;

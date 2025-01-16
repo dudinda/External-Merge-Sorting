@@ -4,6 +4,12 @@ namespace ExtSort.Models.Settings
 {
     public record SorterCPUSettings : SorterSettings
     {
+        public SorterCPUSettings() { }
+        public SorterCPUSettings(SorterSettings settings) : base(settings) 
+        {
+
+        }
+
         public int BufferCapacityLines { get; init; } = 720000;
 
         public override bool Validate(out StringBuilder errors)
