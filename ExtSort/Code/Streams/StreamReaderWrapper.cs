@@ -653,7 +653,7 @@ namespace ExtSort.Code.Streams
 
         #endregion
 
-        public Memory<char> ReadLineAsMemory() 
+        public Memory<char> ReadLineAsMemory(int transitionOffset = 80) 
         {
             ThrowIfDisposed();
 
@@ -705,14 +705,14 @@ namespace ExtSort.Code.Streams
                 } while (i < _charLen);
 
                 i = _charLen - _charPos;
-                targetBuffer = new char[i + 80];
+                targetBuffer = new char[i + transitionOffset];
                 Array.Copy(_charBuffer, _charPos, targetBuffer, 0, i);
                 nullCharIndex = i;
             } while (ReadBuffer() > 0);
             return targetBuffer.AsMemory();
         }
 
-        public Span<char> ReadLineAsSpan() 
+        public Span<char> ReadLineAsSpan(int transitionOffset = 80) 
         {
             ThrowIfDisposed();
 
@@ -764,7 +764,7 @@ namespace ExtSort.Code.Streams
                 } while (i < _charLen);
 
                 i = _charLen - _charPos;
-                targetBuffer = new char[i + 80];
+                targetBuffer = new char[i + transitionOffset];
                 Array.Copy(_charBuffer, _charPos, targetBuffer, 0, i);
                 nullCharIndex = i;
             } while (ReadBuffer() > 0);
