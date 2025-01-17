@@ -1,6 +1,8 @@
 ﻿using ExtSort.Code.Comparers;
 using ExtSort.Code.Extensions;
 using ExtSort.Models.Sorter;
+
+using System;
 using System.Numerics;
 
 namespace ExtSort.Tests
@@ -8,32 +10,32 @@ namespace ExtSort.Tests
     [TestClass]
     public class KMergeOrderTests
     {
-        private MultiColumnComparer<(string Str, BigInteger Int)> _comparer;
-        private Queue<string> _1stList;
-        private Queue<string> _2ndList;
-        private Queue<string> _3rdList;
-        private List<string> _result;
+        private MultiColumnComparer<(ReadOnlyMemory<char> Str, BigInteger Int)> _comparer;
+        private Queue<Memory<char>> _1stList;
+        private Queue<Memory<char>> _2ndList;
+        private Queue<Memory<char>> _3rdList;
+        private List<Memory<char>> _result;
 
         [TestInitialize]
         public void Setup()
         {
-            var comparisons = new Comparison<(string Str, BigInteger Int)>[]
+            var comparisons = new Comparison<(ReadOnlyMemory<char> Str, BigInteger Int)>[]
             {
-                (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
+                (x, y) => x.Str.Span.CompareTo(y.Str.Span, StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            _comparer = new MultiColumnComparer<(string Str, BigInteger Int)>(comparisons);
-            _1stList = new Queue<string>(Get1stOrderedList());
-            _2ndList = new Queue<string>(Get2ndOrderedList());
-            _3rdList = new Queue<string>(Get3rdOrderedList());
-            _result = new List<string>(_1stList.Count + _2ndList.Count + _3rdList.Count);
+            _comparer = new MultiColumnComparer<(ReadOnlyMemory<char> Str, BigInteger Int)>(comparisons);
+            _1stList = new Queue<Memory<char>>(Get1stOrderedList().Select(_ => new Memory<char>(_.ToArray())));
+            _2ndList = new Queue<Memory<char>>(Get2ndOrderedList().Select(_ => new Memory<char>(_.ToArray())));
+            _3rdList = new Queue<Memory<char>>(Get3rdOrderedList().Select(_ => new Memory<char>(_.ToArray())));
+            _result = new List<Memory<char>>(_1stList.Count + _2ndList.Count + _3rdList.Count);
         }
 
         [TestMethod]
         public void VerifyCorrectOrderWithTaskTestComparatorMerge()
         {
-            var array = new Queue<string>[] { _1stList, _2ndList, _3rdList };
-            var queue = new PriorityQueue<Entry, (string, BigInteger)>(array.Length, _comparer);
+            var array = new Queue<Memory<char>>[] { _1stList, _2ndList, _3rdList };
+            var queue = new PriorityQueue<Entry, (ReadOnlyMemory<char>, BigInteger)>(array.Length, _comparer);
             for (var i = 0; i < array.Length; ++i)
             {
                 var value = array[i].Dequeue();
@@ -61,7 +63,7 @@ namespace ExtSort.Tests
                     finishedLists.Add(streamReaderIndex);
             }
 
-            CollectionAssert.AreEqual(_result, CorrectMergeOrder().ToArray());
+            CollectionAssert.AreEqual(_result.Select(_ => _.ToString()).ToArray(), CorrectMergeOrder().ToArray());
         }
 
         private IEnumerable<string> Get1stOrderedList()

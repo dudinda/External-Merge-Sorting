@@ -1,5 +1,6 @@
 ﻿using ExtSort.Code.Comparers;
 using ExtSort.Code.Extensions;
+using ExtSort.Code.Streams;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Sorter;
 
@@ -176,15 +177,15 @@ namespace ExtSort.Services.Sorter.Implementation
         private void SortFile(string unsortedFilePath, string sortedFilePath, int numberOfLines, CancellationToken token)
         {
             long targetSize = 0;
-            var buffer = new (string Str, BigInteger Int)[numberOfLines];
+            var buffer = new (ReadOnlyMemory<char> Str, BigInteger Int)[numberOfLines];
             using (var unsorted = File.OpenRead(unsortedFilePath))
             {
-                using var buffered = new BufferedStream(unsorted);
-                using var streamReader = new StreamReader(buffered);
+                using var buffered = new BufferedStream(unsorted, 4096);
+                using var streamReader = new StreamReaderWrapper(buffered);
                 var index = 0;
                 while (!streamReader.EndOfStream && !token.IsCancellationRequested)
                 {
-                    var value = streamReader.ReadLine();
+                    var value = streamReader.ReadLineAsMemory();
                     if (value.TryParsePriority(out var priority))
                     {
                         buffer[index] = priority;
@@ -198,7 +199,7 @@ namespace ExtSort.Services.Sorter.Implementation
             try
             {
                 buffer.SortWith(token,
-                    (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
+                    (x, y) => x.Str.Span.CompareTo(y.Str.Span, StringComparison.Ordinal),
                     (x, y) => x.Int.CompareTo(y.Int));
             }
             catch (Exception ex) when (ex.InnerException is OperationCanceledException) { throw ex.InnerException; }
@@ -210,7 +211,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 {
                     var builder = new StringBuilder();
                     var index = 0;
-                    (string Str, BigInteger Int) row;
+                    (ReadOnlyMemory<char> Str, BigInteger Int) row;
                     var separator = _settings.Format.ColumnSeparator;
                     while (index < buffer.Length && !token.IsCancellationRequested)
                     {
@@ -317,9 +318,9 @@ namespace ExtSort.Services.Sorter.Implementation
                 {
                     var entry = priorityQueue.Dequeue();
                     var streamReaderIndex = entry.Index;
-                    outputWriter.WriteLine(entry.Row.AsMemory());
+                    outputWriter.WriteLine(entry.Row);
 
-                    var value = streamReaders[streamReaderIndex].ReadLine();
+                    var value = streamReaders[streamReaderIndex].ReadLineAsMemory();
                     if (value.TryParsePriority(out var priority))
                     {
                         Entry row = new (value, streamReaderIndex);
@@ -344,20 +345,20 @@ namespace ExtSort.Services.Sorter.Implementation
             }
         }
 
-        private StreamReader[] InitKWayMergeFromStreams(
+        private StreamReaderWrapper[] InitKWayMergeFromStreams(
             IReadOnlyList<string> sortedFiles,
             string readerSourcePath,
-            out PriorityQueue<Entry, (string, BigInteger)> queue)
+            out PriorityQueue<Entry, (ReadOnlyMemory<char>, BigInteger)> queue)
         {
-            var streamReaders = new StreamReader[sortedFiles.Count];
+            var streamReaders = new StreamReaderWrapper[sortedFiles.Count];
             queue = BuildQueue<Entry>(sortedFiles.Count); 
             for (var i = 0; i < sortedFiles.Count; i++)
             {
                 var sortedFilePath = Path.Combine(readerSourcePath, sortedFiles[i]);
                 var sortedFileStream = File.OpenRead(sortedFilePath);
-                var buffered = new BufferedStream(sortedFileStream);
-                streamReaders[i] = new StreamReader(buffered);
-                var value = streamReaders[i].ReadLine();
+                var buffered = new BufferedStream(sortedFileStream, 4096);
+                streamReaders[i] = new StreamReaderWrapper(buffered);
+                var value = streamReaders[i].ReadLineAsMemory();
                 if (value.TryParsePriority(out var priority))
                 {
                     Entry row = new(value, i);
@@ -390,15 +391,15 @@ namespace ExtSort.Services.Sorter.Implementation
             return sortedFiles;
         }
 
-        internal PriorityQueue<T, (string, BigInteger)> BuildQueue<T>(int capacity)
+        internal PriorityQueue<T, (ReadOnlyMemory<char>, BigInteger)> BuildQueue<T>(int capacity)
         {
-            var comparisons = new Comparison<(string Str, BigInteger Int)>[]
+            var comparisons = new Comparison<(ReadOnlyMemory<char> Str, BigInteger Int)>[]
             {
-                (x, y) => x.Str.AsSpan().CompareTo(y.Str.AsSpan(), StringComparison.Ordinal),
+                (x, y) => x.Str.Span.CompareTo(y.Str.Span, StringComparison.Ordinal),
                 (x, y) => x.Int.CompareTo(y.Int)
             };
-            var comparer = new MultiColumnComparer<(string Str, BigInteger Int)>(comparisons);
-            return new PriorityQueue<T, (string, BigInteger)>(capacity, comparer);
+            var comparer = new MultiColumnComparer<(ReadOnlyMemory<char> Str, BigInteger Int)>(comparisons);
+            return new PriorityQueue<T, (ReadOnlyMemory<char>, BigInteger)>(capacity, comparer);
         }
 
         public void Dispose()

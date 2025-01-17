@@ -1,4 +1,4 @@
 ﻿namespace ExtSort.Models.Sorter 
 {
-    internal record Entry(string Row, int Index);
+    internal record Entry(Memory<char> Row, int Index);
 }

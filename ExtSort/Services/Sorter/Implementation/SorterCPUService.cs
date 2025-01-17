@@ -1,4 +1,5 @@
 ﻿using ExtSort.Code.Extensions;
+using ExtSort.Code.Streams;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
 using ExtSort.Services.Sorter.Implementation;
@@ -48,7 +49,7 @@ namespace ExtSort.Services.Sorter
             var encoding = Encoding.GetEncoding(_settings.Format.EncodingName);
             await using (var sourceStream = File.OpenRead(srcPath))
             {
-                using (var reader = new StreamReader(sourceStream, encoding))
+                using (var reader = new StreamReaderWrapper(sourceStream, encoding, false, 4096))
                 {
                     var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
                     var separator = _settings.Format.ColumnSeparator;
@@ -58,7 +59,7 @@ namespace ExtSort.Services.Sorter
                     var lineNumber = 0L;
                     var tasks = new List<Task>();
 
-                    using var msgScope = new IntervalScope(5);
+                    using var msgScope = new IntervalScope(1);
                     const string rowBokenFormatMessage = "Line number {0} contains content with a broken format: \"{1}\"";
                     const string fileMessage = "Current file: {0}";
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");
@@ -76,9 +77,13 @@ namespace ExtSort.Services.Sorter
                             if (sourceStream.Position - totalRead > fileSize)
                                 break;
 
-                            var line = reader.ReadLine();
-
-                            if (string.IsNullOrEmpty(line) && reader.EndOfStream)
+                            if(lineNumber == 382)
+                            {
+                                var t = 0;
+                            }
+                            var line = reader.ReadLineAsMemory();
+         
+                            if (line.IsEmpty && reader.EndOfStream)
                                 break;
 
                             var success = line.TryParsePriority(out var priority);
@@ -98,9 +103,9 @@ namespace ExtSort.Services.Sorter
                             if (reader.EndOfStream || sourceStream.Position != sourceStream.Length)
                                 break;
 
-                            var line = reader.ReadLine();
+                            var line = reader.ReadLineAsMemory();
 
-                            if (string.IsNullOrEmpty(line) && reader.EndOfStream)
+                            if (line.IsEmpty && reader.EndOfStream)
                                 break;
 
                             var success = line.TryParsePriority(out var priority);
@@ -121,7 +126,7 @@ namespace ExtSort.Services.Sorter
                             if (!_settings.Format.UsePreamble)
                                 writer.SkipPreamble();
 
-                            var builder = new StringBuilder(); (string Str, BigInteger Int) row;
+                            var builder = new StringBuilder(); (ReadOnlyMemory<char> Str, BigInteger Int) row;
                             while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested) 
                             {
                                 writer.WriteLine(builder.Append(row.Int).Append(separator).Append(row.Str));
