@@ -653,26 +653,49 @@ namespace ExtSort.Code.Streams
 
         #endregion
 
-        public Memory<char> ReadLineAsMemory() {
+        public Memory<char> ReadLineAsMemory() 
+        {
             ThrowIfDisposed();
 
-            if (_charPos == _charLen) {
-                if (ReadBuffer() == 0) {
+            if (_charPos == _charLen)
+            {
+                if (ReadBuffer() == 0) 
+                {
                     return null;
                 }
             }
-
-            do {
+            char[]? targetBuffer = null;
+            int nullCharIndex = 0;
+            int length;
+            do 
+            {
                 int i = _charPos;
-                do {
+                do 
+                {
                     char ch = _charBuffer[i];
                     // Note the following common line feed chars:
                     // \n - UNIX   \r\n - DOS   \r - Mac
-                    if (ch == '\r' || ch == '\n') {
-                        var result = _charBuffer.AsMemory().Slice(_charPos, i - _charPos);
+                    if (ch == '\r' || ch == '\n') 
+                    {
+                        Memory<char> result;
+                        length = i - _charPos;
+                        if(targetBuffer != null)
+                        {
+                            Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, length);
+                            result = targetBuffer.AsMemory();
+                        }
+                        else
+                        {
+                            targetBuffer = new char[length];
+                            Array.Copy(_charBuffer, _charPos, targetBuffer, 0, length);
+                            result = targetBuffer.AsMemory();
+          
+                        }
                         _charPos = i + 1;
-                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0)) {
-                            if (_charBuffer[_charPos] == '\n') {
+                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0))
+                        {
+                            if (_charBuffer[_charPos] == '\n') 
+                            {
                                 _charPos++;
                             }
                         }
@@ -682,31 +705,56 @@ namespace ExtSort.Code.Streams
                 } while (i < _charLen);
 
                 i = _charLen - _charPos;
-                Array.Resize(ref _charBuffer, i + 80);
+                targetBuffer = new char[i + 80];
+                Array.Copy(_charBuffer, _charPos, targetBuffer, 0, i);
+                nullCharIndex = i;
             } while (ReadBuffer() > 0);
-            return _charBuffer.AsMemory();
+            return targetBuffer.AsMemory();
         }
 
-        public Span<char> ReadLineAsSpan() {
+        public Span<char> ReadLineAsSpan() 
+        {
             ThrowIfDisposed();
 
-            if (_charPos == _charLen) {
-                if (ReadBuffer() == 0) {
+            if (_charPos == _charLen)
+            {
+                if (ReadBuffer() == 0) 
+                {
                     return null;
                 }
             }
 
-            do {
+            char[]? targetBuffer = null;
+            int nullCharIndex = 0;
+            int length;
+            do 
+            {
                 int i = _charPos;
-                do {
+                do 
+                {
                     char ch = _charBuffer[i];
                     // Note the following common line feed chars:
                     // \n - UNIX   \r\n - DOS   \r - Mac
-                    if (ch == '\r' || ch == '\n') {
-                        var result = _charBuffer.AsSpan().Slice(_charPos, i - _charPos);
+                    if (ch == '\r' || ch == '\n')
+                    {
+                        Span<char> result;
+                        length = i - _charPos;
+                        if (targetBuffer != null)
+                        {
+                            Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, i - _charPos);
+                            result = targetBuffer.AsSpan();
+                        }
+                        else
+                        {
+                            targetBuffer = new char[length];
+                            Array.Copy(_charBuffer, _charPos, targetBuffer, 0, length);
+                            result = targetBuffer.AsSpan();
+                        }
                         _charPos = i + 1;
-                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0)) {
-                            if (_charBuffer[_charPos] == '\n') {
+                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0))
+                        {
+                            if (_charBuffer[_charPos] == '\n')
+                            {
                                 _charPos++;
                             }
                         }
@@ -716,9 +764,11 @@ namespace ExtSort.Code.Streams
                 } while (i < _charLen);
 
                 i = _charLen - _charPos;
-                Array.Resize(ref _charBuffer, i + 80);
+                targetBuffer = new char[i + 80];
+                Array.Copy(_charBuffer, _charPos, targetBuffer, 0, i);
+                nullCharIndex = i;
             } while (ReadBuffer() > 0);
-            return _charBuffer.AsSpan();
+            return targetBuffer.AsSpan();
         }
     }
 }
