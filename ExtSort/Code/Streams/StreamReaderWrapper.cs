@@ -682,7 +682,7 @@ namespace ExtSort.Code.Streams
                         if(targetBuffer != null)
                         {
                             Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, length);
-                            result = targetBuffer.AsMemory();
+                            result = targetBuffer.AsMemory().Slice(0, nullCharIndex + length);
                         }
                         else
                         {
@@ -741,8 +741,8 @@ namespace ExtSort.Code.Streams
                         length = i - _charPos;
                         if (targetBuffer != null)
                         {
-                            Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, i - _charPos);
-                            result = targetBuffer.AsSpan();
+                            Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, length);
+                            result = targetBuffer.AsSpan().Slice(0, nullCharIndex + length);
                         }
                         else
                         {
