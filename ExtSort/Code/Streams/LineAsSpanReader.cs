@@ -16,7 +16,7 @@ namespace ExtSort.Code.Streams
             {
                 if (ReadBuffer() == 0)
                 {
-                    return null;
+                    return Memory<char>.Empty;
                 }
             }
             char[]? targetBuffer = null;
@@ -66,6 +66,7 @@ namespace ExtSort.Code.Streams
             } while (ReadBuffer() > 0);
             return targetBuffer.AsMemory();
         }
+
         public Span<char> ReadLineAsSpan(int transitionOffset = 80)
         {
             ThrowIfDisposed();
@@ -74,7 +75,7 @@ namespace ExtSort.Code.Streams
             {
                 if (ReadBuffer() == 0)
                 {
-                    return null;
+                    return Span<char>.Empty;
                 }
             }
 
