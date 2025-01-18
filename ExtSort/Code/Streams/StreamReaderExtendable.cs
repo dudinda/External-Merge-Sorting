@@ -7,9 +7,19 @@ namespace ExtSort.Code.Streams
     /// Wrapper around the <see cref="StreamReader"/> to allow read
     /// lines as the Span or as the Memory of type char
     /// </summary>
-    public class StreamReaderWrapper : TextReader
+    public class StreamReaderExtendable : TextReader
     {
-        #region StreamReader Implementation
+        protected int _charPos;
+        protected int _charLen;
+        protected char[] _charBuffer = null!; // only null in NullStreamReader where this is never used
+
+        protected StreamReaderExtendable()
+        {
+            _stream = Stream.Null;
+            _closable = true;
+        }
+
+        #region StreamReader Original Implementation
         // Using a 1K byte buffer and a 4K FileStream buffer works out pretty well
         // perf-wise.  On even a 40 MB text file, any perf loss by using a 4K
         // buffer is negated by the win of allocating a smaller byte[], which
@@ -23,9 +33,6 @@ namespace ExtSort.Code.Streams
         private Encoding _encoding = null!; // only null in NullStreamReader where this is never used
         private Decoder _decoder = null!; // only null in NullStreamReader where this is never used
         private readonly byte[] _byteBuffer = null!; // only null in NullStreamReader where this is never used
-        private char[] _charBuffer = null!; // only null in NullStreamReader where this is never used
-        private int _charPos;
-        private int _charLen;
         // Record the number of valid bytes in the byteBuffer, for a few checks.
         private int _byteLen;
         // This is used only for preamble detection
@@ -66,28 +73,22 @@ namespace ExtSort.Code.Streams
         // read from the same thread is in progress.
         private Task _asyncReadTask = Task.CompletedTask;
 
-        private StreamReaderWrapper()
-        {
-            _stream = Stream.Null;
-            _closable = true;
-        }
-
-        public StreamReaderWrapper(Stream stream)
+        public StreamReaderExtendable(Stream stream)
             : this(stream, true)
         {
         }
 
-        public StreamReaderWrapper(Stream stream, bool detectEncodingFromByteOrderMarks)
+        public StreamReaderExtendable(Stream stream, bool detectEncodingFromByteOrderMarks)
             : this(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks, DefaultBufferSize, false)
         {
         }
 
-        public StreamReaderWrapper(Stream stream, Encoding encoding)
+        public StreamReaderExtendable(Stream stream, Encoding encoding)
             : this(stream, encoding, true, DefaultBufferSize, false)
         {
         }
 
-        public StreamReaderWrapper(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
+        public StreamReaderExtendable(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
             : this(stream, encoding, detectEncodingFromByteOrderMarks, DefaultBufferSize, false)
         {
         }
@@ -102,12 +103,12 @@ namespace ExtSort.Code.Streams
         // unicode, and big endian unicode text, but that's it.  If neither
         // of those three match, it will use the Encoding you provided.
         //
-        public StreamReaderWrapper(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks, int bufferSize)
+        public StreamReaderExtendable(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks, int bufferSize)
             : this(stream, encoding, detectEncodingFromByteOrderMarks, bufferSize, false)
         {
         }
 
-        public StreamReaderWrapper(Stream stream, Encoding? encoding = null, bool detectEncodingFromByteOrderMarks = true, int bufferSize = -1, bool leaveOpen = false)
+        public StreamReaderExtendable(Stream stream, Encoding? encoding = null, bool detectEncodingFromByteOrderMarks = true, int bufferSize = -1, bool leaveOpen = false)
         {
             if (encoding == null)
             {
@@ -142,37 +143,37 @@ namespace ExtSort.Code.Streams
             _closable = !leaveOpen;
         }
 
-        public StreamReaderWrapper(string path)
+        public StreamReaderExtendable(string path)
             : this(path, true)
         {
         }
 
-        public StreamReaderWrapper(string path, bool detectEncodingFromByteOrderMarks)
+        public StreamReaderExtendable(string path, bool detectEncodingFromByteOrderMarks)
             : this(path, Encoding.UTF8, detectEncodingFromByteOrderMarks, DefaultBufferSize)
         {
         }
 
-        public StreamReaderWrapper(string path, Encoding encoding)
+        public StreamReaderExtendable(string path, Encoding encoding)
             : this(path, encoding, true, DefaultBufferSize)
         {
         }
 
-        public StreamReaderWrapper(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks)
+        public StreamReaderExtendable(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks)
             : this(path, encoding, detectEncodingFromByteOrderMarks, DefaultBufferSize)
         {
         }
 
-        public StreamReaderWrapper(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, int bufferSize)
+        public StreamReaderExtendable(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, int bufferSize)
             : this(ValidateArgsAndOpenPath(path, encoding, bufferSize), encoding, detectEncodingFromByteOrderMarks, bufferSize, leaveOpen: false)
         {
         }
 
-        public StreamReaderWrapper(string path, FileStreamOptions options)
+        public StreamReaderExtendable(string path, FileStreamOptions options)
             : this(path, Encoding.UTF8, true, options)
         {
         }
 
-        public StreamReaderWrapper(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, FileStreamOptions options)
+        public StreamReaderExtendable(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, FileStreamOptions options)
             : this(ValidateArgsAndOpenPath(path, encoding, options), encoding, detectEncodingFromByteOrderMarks, DefaultBufferSize)
         {
         }
@@ -414,7 +415,7 @@ namespace ExtSort.Code.Streams
         // buffer's worth of bytes could produce.
         // This optimization, if run, will break SwitchEncoding, so we must not do
         // this on the first call to ReadBuffer.
-        private int ReadBuffer(Span<char> userBuffer, out bool readToUserBuffer)
+        protected int ReadBuffer(Span<char> userBuffer, out bool readToUserBuffer)
         {
             _charLen = 0;
             _charPos = 0;
@@ -587,18 +588,6 @@ namespace ExtSort.Code.Streams
             return sb.ToString();
         }
 
-    
-
-        private void ThrowIfDisposed()
-        {
-            if (_disposed)
-            {
-                ThrowObjectDisposedException();
-            }
-
-            void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name);
-        }
-
         private static Stream ValidateArgsAndOpenPath(string path, Encoding encoding, FileStreamOptions options)
         {
             ValidateArgs(path, encoding);
@@ -653,122 +642,14 @@ namespace ExtSort.Code.Streams
 
         #endregion
 
-        public Memory<char> ReadLineAsMemory(int transitionOffset = 80) 
+        protected void ThrowIfDisposed()
         {
-            ThrowIfDisposed();
-
-            if (_charPos == _charLen)
+            if (_disposed)
             {
-                if (ReadBuffer() == 0) 
-                {
-                    return null;
-                }
-            }
-            char[]? targetBuffer = null;
-            int nullCharIndex = 0;
-            int length;
-            do 
-            {
-                int i = _charPos;
-                do 
-                {
-                    char ch = _charBuffer[i];
-                    // Note the following common line feed chars:
-                    // \n - UNIX   \r\n - DOS   \r - Mac
-                    if (ch == '\r' || ch == '\n') 
-                    {
-                        Memory<char> result;
-                        length = i - _charPos;
-                        if(targetBuffer != null)
-                        {
-                            Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, length);
-                            result = targetBuffer.AsMemory().Slice(0, nullCharIndex + length);
-                        }
-                        else
-                        {
-                            targetBuffer = new char[length];
-                            Array.Copy(_charBuffer, _charPos, targetBuffer, 0, length);
-                            result = targetBuffer.AsMemory();
-          
-                        }
-                        _charPos = i + 1;
-                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0))
-                        {
-                            if (_charBuffer[_charPos] == '\n') 
-                            {
-                                _charPos++;
-                            }
-                        }
-                        return result;
-                    }
-                    i++;
-                } while (i < _charLen);
-
-                i = _charLen - _charPos;
-                targetBuffer = new char[i + transitionOffset];
-                Array.Copy(_charBuffer, _charPos, targetBuffer, 0, i);
-                nullCharIndex = i;
-            } while (ReadBuffer() > 0);
-            return targetBuffer.AsMemory();
-        }
-
-        public Span<char> ReadLineAsSpan(int transitionOffset = 80) 
-        {
-            ThrowIfDisposed();
-
-            if (_charPos == _charLen)
-            {
-                if (ReadBuffer() == 0) 
-                {
-                    return null;
-                }
+                ThrowObjectDisposedException();
             }
 
-            char[]? targetBuffer = null;
-            int nullCharIndex = 0;
-            int length;
-            do 
-            {
-                int i = _charPos;
-                do 
-                {
-                    char ch = _charBuffer[i];
-                    // Note the following common line feed chars:
-                    // \n - UNIX   \r\n - DOS   \r - Mac
-                    if (ch == '\r' || ch == '\n')
-                    {
-                        Span<char> result;
-                        length = i - _charPos;
-                        if (targetBuffer != null)
-                        {
-                            Array.Copy(_charBuffer, _charPos, targetBuffer, nullCharIndex, length);
-                            result = targetBuffer.AsSpan().Slice(0, nullCharIndex + length);
-                        }
-                        else
-                        {
-                            targetBuffer = new char[length];
-                            Array.Copy(_charBuffer, _charPos, targetBuffer, 0, length);
-                            result = targetBuffer.AsSpan();
-                        }
-                        _charPos = i + 1;
-                        if (ch == '\r' && (_charPos < _charLen || ReadBuffer() > 0))
-                        {
-                            if (_charBuffer[_charPos] == '\n')
-                            {
-                                _charPos++;
-                            }
-                        }
-                        return result;
-                    }
-                    i++;
-                } while (i < _charLen);
-
-                i = _charLen - _charPos;
-                targetBuffer = new char[i + transitionOffset];
-                Array.Copy(_charBuffer, _charPos, targetBuffer, 0, i);
-                nullCharIndex = i;
-            } while (ReadBuffer() > 0);
-            return targetBuffer.AsSpan();
+            void ThrowObjectDisposedException() => throw new ObjectDisposedException(GetType().Name);
         }
     }
 }

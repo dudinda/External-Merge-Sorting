@@ -49,7 +49,7 @@ namespace ExtSort.Services.Sorter
             var encoding = Encoding.GetEncoding(_settings.Format.EncodingName);
             await using (var sourceStream = File.OpenRead(srcPath))
             {
-                using (var reader = new StreamReaderWrapper(sourceStream, encoding, false, 4096))
+                using (var reader = new LineAsSpanReader(sourceStream, encoding, false, 4096))
                 {
                     var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
                     var separator = _settings.Format.ColumnSeparator;
@@ -59,7 +59,7 @@ namespace ExtSort.Services.Sorter
                     var lineNumber = 0L;
                     var tasks = new List<Task>();
 
-                    using var msgScope = new IntervalScope(1);
+                    using var msgScope = new IntervalScope(5);
                     const string rowBokenFormatMessage = "Line number {0} contains content with a broken format: \"{1}\"";
                     const string fileMessage = "Current file: {0}";
                     Console.WriteLine($"Splitting {srcFile} into files of the {fileSize / (1024 * 1024):0.###} MB");

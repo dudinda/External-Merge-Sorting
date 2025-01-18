@@ -181,7 +181,7 @@ namespace ExtSort.Services.Sorter.Implementation
             using (var unsorted = File.OpenRead(unsortedFilePath))
             {
                 using var buffered = new BufferedStream(unsorted, 4096);
-                using var streamReader = new StreamReaderWrapper(buffered);
+                using var streamReader = new LineAsSpanReader(buffered);
                 var index = 0;
                 while (!streamReader.EndOfStream && !token.IsCancellationRequested)
                 {
@@ -345,19 +345,19 @@ namespace ExtSort.Services.Sorter.Implementation
             }
         }
 
-        private StreamReaderWrapper[] InitKWayMergeFromStreams(
+        private LineAsSpanReader[] InitKWayMergeFromStreams(
             IReadOnlyList<string> sortedFiles,
             string readerSourcePath,
             out PriorityQueue<Entry, (ReadOnlyMemory<char>, BigInteger)> queue)
         {
-            var streamReaders = new StreamReaderWrapper[sortedFiles.Count];
+            var streamReaders = new LineAsSpanReader[sortedFiles.Count];
             queue = BuildQueue<Entry>(sortedFiles.Count); 
             for (var i = 0; i < sortedFiles.Count; i++)
             {
                 var sortedFilePath = Path.Combine(readerSourcePath, sortedFiles[i]);
                 var sortedFileStream = File.OpenRead(sortedFilePath);
                 var buffered = new BufferedStream(sortedFileStream, 4096);
-                streamReaders[i] = new StreamReaderWrapper(buffered);
+                streamReaders[i] = new LineAsSpanReader(buffered);
                 var value = streamReaders[i].ReadLineAsMemory();
                 if (value.TryParsePriority(out var priority))
                 {
