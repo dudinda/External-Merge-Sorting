@@ -77,10 +77,6 @@ namespace ExtSort.Services.Sorter
                             if (sourceStream.Position - totalRead > fileSize)
                                 break;
 
-                            if(lineNumber == 382)
-                            {
-                                var t = 0;
-                            }
                             var line = reader.ReadLineAsMemory();
          
                             if (line.IsEmpty && reader.EndOfStream)
