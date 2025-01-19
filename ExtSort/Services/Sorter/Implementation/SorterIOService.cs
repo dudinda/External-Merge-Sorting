@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text;
 
-namespace ExtSort.Services.Sorter.Implementation 
+namespace ExtSort.Services.Sorter.Implementation
 {
     public class SorterIOService : ISorterService
     {
@@ -318,7 +318,7 @@ namespace ExtSort.Services.Sorter.Implementation
                 {
                     var entry = priorityQueue.Dequeue();
                     var streamReaderIndex = entry.Index;
-                    outputWriter.WriteLine(entry.Row);
+                    outputWriter.WriteLine(entry.Row.Span);
 
                     var value = streamReaders[streamReaderIndex].ReadLineAsMemory();
                     if (value.TryParsePriority(out var priority))
