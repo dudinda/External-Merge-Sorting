@@ -210,13 +210,13 @@ namespace ExtSort.Services.Sorter.Implementation
                 using (var streamWriter = new StreamWriter(sorted, bufferSize: _settings.SortOutputBufferSize))
                 {
                     var builder = new StringBuilder();
-                    var index = 0;
-                    (ReadOnlyMemory<char> Str, BigInteger Int) row;
+                    var index = 0; (ReadOnlyMemory<char> Str, BigInteger Int) row;
                     var separator = _settings.Format.ColumnSeparator;
+                    var numOfDigits = _settings.Format.MaxNumberOfDigitsBigInt;
                     while (index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
-                        builder.Append(row.Int).Append(separator).Append(row.Str);
+                        builder.Append(row.Int.AsSpan(numOfDigits)).Append(separator).Append(row.Str);
                         streamWriter.WriteLine(builder);
                         builder.Clear();
                         ++index;

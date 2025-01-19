@@ -53,6 +53,8 @@ namespace ExtSort.Services.Sorter
                 {
                     var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
                     var separator = _settings.Format.ColumnSeparator;
+                    var numOfDigits = _settings.Format.MaxNumberOfDigitsBigInt;
+
                     var totalRead = 0l;
                     var file = 0;
                     var page = 0;
@@ -125,7 +127,7 @@ namespace ExtSort.Services.Sorter
                             var builder = new StringBuilder(); (ReadOnlyMemory<char> Str, BigInteger Int) row;
                             while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested) 
                             {
-                                writer.WriteLine(builder.Append(row.Int).Append(separator).Append(row.Str));
+                                writer.WriteLine(builder.Append(row.Int.AsSpan(numOfDigits)).Append(separator).Append(row.Str));
                                 builder.Clear();
                             }
                             token.ThrowIfCancellationRequested();
