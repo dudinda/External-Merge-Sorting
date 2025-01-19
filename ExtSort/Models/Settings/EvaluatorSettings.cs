@@ -6,10 +6,8 @@ namespace ExtSort.Models.Settings
 {
     internal record EvaluatorSettings : EvaluatorBinder 
     {
-        public EvaluatorSettings(EvaluatorBinder settings) : base(settings) 
-        {
-
-        }
+        public EvaluatorSettings() { }
+        public EvaluatorSettings(EvaluatorBinder settings) : base(settings) { }
 
         public bool Validate(out StringBuilder errors) 
         {
