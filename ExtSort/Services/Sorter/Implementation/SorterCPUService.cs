@@ -4,6 +4,7 @@ using ExtSort.Models.Settings;
 using ExtSort.Models.Timer;
 using ExtSort.Services.Sorter.Implementation;
 
+using System.Buffers;
 using System.Numerics;
 using System.Text;
 
@@ -46,6 +47,7 @@ namespace ExtSort.Services.Sorter
             var srcPath = Path.Combine(_settings.IOPath.SplitReadPath, srcFile);
             if (!Directory.Exists(_settings.IOPath.SplitReadPath))
                 throw new InvalidOperationException($"Directory {_settings.IOPath.SplitReadPath} does not exist.");
+            var numOfDigits = Math.Max(_settings.Format.MaxNumberOfDigitsBigInt, 0x10);
             var encoding = Encoding.GetEncoding(_settings.Format.EncodingName);
             await using (var sourceStream = File.OpenRead(srcPath))
             {
@@ -53,7 +55,6 @@ namespace ExtSort.Services.Sorter
                 {
                     var fileSize = Math.Max(1, sourceStream.Length / numberOfFiles);
                     var separator = _settings.Format.ColumnSeparator;
-                    var numOfDigits = _settings.Format.MaxNumberOfDigitsBigInt;
 
                     var totalRead = 0l;
                     var file = 0;
@@ -124,11 +125,15 @@ namespace ExtSort.Services.Sorter
                             if (!_settings.Format.UsePreamble)
                                 writer.SkipPreamble();
 
-                            var builder = new StringBuilder(); (ReadOnlyMemory<char> Str, BigInteger Int) row;
+                            var builder = new StringBuilder();
+                            var shared = ArrayPool<char>.Shared;
+                            char[]? rented; (ReadOnlyMemory<char> Str, BigInteger Int) row;
                             while (queue.TryDequeue(out _, out row) && !token.IsCancellationRequested) 
                             {
-                                writer.WriteLine(builder.Append(row.Int.AsSpan(numOfDigits)).Append(separator).Append(row.Str));
+                                rented = shared.Rent(numOfDigits);
+                                writer.WriteLine(builder.Append(row.Int.AsSpan(rented)).Append(separator).Append(row.Str));
                                 builder.Clear();
+                                shared.Return(rented);
                             }
                             token.ThrowIfCancellationRequested();
                         }, token));

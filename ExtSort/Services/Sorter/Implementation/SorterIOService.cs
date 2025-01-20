@@ -4,6 +4,7 @@ using ExtSort.Code.Streams;
 using ExtSort.Models.Settings;
 using ExtSort.Models.Sorter;
 
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Numerics;
 using System.Text;
@@ -212,13 +213,16 @@ namespace ExtSort.Services.Sorter.Implementation
                     var builder = new StringBuilder();
                     var index = 0; (ReadOnlyMemory<char> Str, BigInteger Int) row;
                     var separator = _settings.Format.ColumnSeparator;
-                    var numOfDigits = _settings.Format.MaxNumberOfDigitsBigInt;
+                    var numOfDigits = Math.Max(_settings.Format.MaxNumberOfDigitsBigInt, 0x10);
+                    var shared = ArrayPool<char>.Shared; char[]? rented;
                     while (index < buffer.Length && !token.IsCancellationRequested)
                     {
                         row = buffer[index];
-                        builder.Append(row.Int.AsSpan(numOfDigits)).Append(separator).Append(row.Str);
+                        rented = shared.Rent(numOfDigits);
+                        builder.Append(row.Int.AsSpan(rented)).Append(separator).Append(row.Str);
                         streamWriter.WriteLine(builder);
                         builder.Clear();
+                        shared.Return(rented);
                         ++index;
                     }
                     Array.Clear(buffer, 0, buffer.Length);
