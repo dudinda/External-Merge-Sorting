@@ -1,20 +1,18 @@
 ﻿using BenchmarkDotNet.Attributes;
-
 using ExtSort.Code.Streams;
 using ExtSort.Models.Settings;
 using ExtSort.Services.Generator;
 
 using System.Text;
 
-namespace ExtSort.Benchmarks.Stream
+namespace ExtSort.Benchmarks.Benchmarks.Streams
 {
     [SimpleJob(launchCount: 3, warmupCount: 5, invocationCount: 15)]
     public class ReadLineBenchmarks
     {
         private string _filename;
 
-        [GlobalSetup]
-        public void Setup()
+        public ReadLineBenchmarks()
         {
             _filename = "benchmark.txt";
             var service = new GeneratorService(new GeneratorSettings());
@@ -27,7 +25,7 @@ namespace ExtSort.Benchmarks.Stream
             using var file = File.OpenRead(_filename);
             using var reader = new StreamReader(file, new UTF8Encoding(false), false, 4096);
             string line;
-            while((line = reader.ReadLine()) != null ) { }
+            while ((line = reader.ReadLine()) != null) { }
         }
 
         [Benchmark]
@@ -37,12 +35,6 @@ namespace ExtSort.Benchmarks.Stream
             using var reader = new LineAsSpanReader(file, new UTF8Encoding(false), false, 4096);
             string line;
             while ((line = reader.ReadLine()) != null) { }
-        }
-
-        [GlobalCleanup]
-        public void Clean()
-        {
-            File.Delete(_filename);
         }
     }
 }
