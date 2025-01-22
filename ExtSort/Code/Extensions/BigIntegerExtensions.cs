@@ -4,13 +4,12 @@ namespace ExtSort.Code.Extensions
 {
     internal static class BigIntegerExtensions
     {
-        public static Span<char> AsSpan(this BigInteger number, char[] buffer)
+        public static Span<char> AsSpan(this BigInteger number, Span<char> buffer)
         {
-            Span<char> bigValue = buffer;
             int charsWritten;
-            if (!number.TryFormat(bigValue, out charsWritten))
+            if (!number.TryFormat(buffer, out charsWritten))
                 throw new InvalidOperationException("Cannot parse the source digit.");
-            return bigValue.Slice(0, charsWritten);
+            return buffer.Slice(0, charsWritten);
         }
         public static Span<char> AsSpan(this BigInteger number, int numOfDigits)
             => number.AsSpan(new char[numOfDigits]);
