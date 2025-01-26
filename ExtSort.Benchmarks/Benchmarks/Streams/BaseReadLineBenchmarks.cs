@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 
+using ExtSort.Code.Extensions;
 using ExtSort.Code.Streams;
 using ExtSort.Models.Settings;
 using ExtSort.Services.Generator;
@@ -51,6 +52,32 @@ namespace ExtSort.Benchmarks.Benchmarks.Streams
             while (!reader.EndOfStream)
             {
                 line = reader.ReadLineAsSpan();
+            }
+        }
+
+        [Benchmark]
+        public void ReadLinesAsStringThenParse()
+        {
+            using var file = File.OpenRead(_filename);
+            using var reader = new StreamReader(file, new UTF8Encoding(false), false, 4096);
+            string line;
+            while (!reader.EndOfStream)
+            {
+                line = reader.ReadLine();
+                line.TryParsePriority(out var priority);
+            }
+        }
+
+        [Benchmark]
+        public void ReadLinesAsMemoryThenParse()
+        {
+            using var file = File.OpenRead(_filename);
+            using var reader = new LineAsSpanReader(file, new UTF8Encoding(false), false, 4096);
+            Memory<char> line;
+            while (!reader.EndOfStream)
+            {
+                line = reader.ReadLineAsMemory();
+                line.TryParsePriority(out var priority);
             }
         }
     }
