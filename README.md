@@ -1,7 +1,8 @@
  The software solves a task defined in the [Task.pdf](https://github.com/dudinda/External-Merge-Sorting/blob/master/Task.pdf), which was originally issued as a test assignment.
  # External Merge Sorting
 
-1. [Console interface](#console-interface)
+1. [Overview](#overview)
+   - [Console Interface](#console-interface)
 2. [Algorithm](#algorithm)
    - [IO Mode](#io-mode)
       - [Splitting Phase](#splitting)
@@ -16,7 +17,8 @@
 7. [How to run the program](#how-to-run-the-program)
 ***
 
-## Console Interface
+## Overview
+### Console Interface
 The software provides a console interface with three verbs: ```[g]enerate```, ```[s]ort```, ```[e]valuate``` for every program. To start sort an output file the target directory must be created. By default the path is ```C:\Temp\Files```.
 
 ```powershell
