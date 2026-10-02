@@ -1,3 +1,5 @@
+***Disclaimer**: The software provided in this repository was developed without the use of generative AI. Generative AI may only be used to verify grammatical correctness and syntax.*
+
  The software solves the task described in [Task.pdf](https://github.com/dudinda/External-Merge-Sorting/blob/master/Task.pdf), which was originally issued as a test assignment.
  # External Merge Sorting
 
